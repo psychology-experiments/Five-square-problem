@@ -1,0 +1,4 @@
+class GridRow {
+    constructor({ rowIndex }) {
+    }
+}

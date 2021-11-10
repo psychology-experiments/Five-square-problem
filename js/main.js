@@ -1,12 +1,12 @@
 ﻿// import {core, data, sound, util, visual} from '../lib/psychojs-2021.2.3.js';
-import {core, util} from '../lib/psychojs-2021.2.3.developer.js';
+import { core, util } from '../lib/psychojs-2021.2.3.developer.js';
 
-const {PsychoJS} = core;
-const {Scheduler} = util;
+const { PsychoJS } = core;
+const { Scheduler } = util;
 
 // store info about the experiment session:
 const expName = 'Five square problem';
-const expInfo = {'participant': ''};
+const expInfo = { 'participant': '' };
 
 // init psychoJS:
 const psychoJS = new PsychoJS({
@@ -136,7 +136,7 @@ function mainRoutineEachFrame() {
 
         // check for quit (typically the Esc key)
         if (psychoJS.experiment.experimentEnded ||
-            psychoJS.eventManager.getKeys({keyList: ['escape']}).length > 0) {
+            psychoJS.eventManager.getKeys({ keyList: ['escape'] }).length > 0) {
             return quitPsychoJS('The [Escape] key was pressed. Goodbye!', false);
         }
 
@@ -185,7 +185,7 @@ async function quitPsychoJS(message, isCompleted) {
         psychoJS.experiment.nextEntry();
     }
     psychoJS.window.close();
-    await psychoJS.quit({message: message, isCompleted: isCompleted});
+    await psychoJS.quit({ message: message, isCompleted: isCompleted });
 
     return Scheduler.Event.QUIT;
 }

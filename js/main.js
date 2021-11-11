@@ -1,5 +1,15 @@
 ﻿// import {core, data, sound, util, visual} from '../lib/psychojs-2021.2.3.js';
-import { core, util } from '../lib/psychojs-2021.2.3.developer.js';
+import { core, util, visual } from '../lib/psychojs-2021.2.3.developer.js';
+import { Grid } from './katona/presenter/logic/grid.js';
+
+const w = 0.02;
+const h = 0.08;
+const positions = new Grid({
+    startPoint: [-0.4, 0.47],
+    gridSize: 9,
+    gridUnitLength: h,
+    gridUnitWidth: w,
+}).gridElements;
 
 const { PsychoJS } = core;
 const { Scheduler } = util;
@@ -95,6 +105,7 @@ async function updateInfo() {
 let mainClock;
 let globalClock;
 let routineTimer;
+let grid;
 
 async function experimentInit() {
     // Create some handy timers
@@ -104,6 +115,21 @@ async function experimentInit() {
     // Initialize components for Routine "main"
     mainClock = new util.Clock();
 
+    grid = [];
+    for (let element of positions) {
+        const visualElement = new visual.Rect({
+            win: psychoJS.window,
+            pos: element.position,
+            ori: element.orientation,
+            fillColor: new util.Color("lightgrey"),
+            lineColor: new util.Color("lightgrey"),
+            width: w,
+            height: h,
+            size: 1,
+        });
+        grid.push(visualElement);
+    }
+
     return Scheduler.Event.NEXT;
 }
 
@@ -111,10 +137,8 @@ async function experimentInit() {
 let t;
 let frameN;
 
-function mainRoutineBegin(snapshot) {
+function mainRoutineBegin() {
     return async function () {
-        console.log(snapshot);
-
         //------Prepare to start Routine 'trial'-------
         t = 0;
         mainClock.reset(); // clock
@@ -138,6 +162,10 @@ function mainRoutineEachFrame() {
         if (psychoJS.experiment.experimentEnded ||
             psychoJS.eventManager.getKeys({ keyList: ['escape'] }).length > 0) {
             return quitPsychoJS('The [Escape] key was pressed. Goodbye!', false);
+        }
+
+        for (let e of grid) {
+            e.draw();
         }
 
         // refresh the screen if continuing

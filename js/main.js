@@ -90,7 +90,7 @@ async function updateInfo() {
     expInfo.expName = expName;
     expInfo.psychopyVersion = '2021.2.3';
     // noinspection JSUnresolvedVariable
-    expInfo.OS = navigator.userAgentData.platform;
+    expInfo.OS = window.navigator.platform;
 
     // store frame rate of monitor if we can measure it successfully
     expInfo.frameRate = psychoJS.window.getActualFrameRate();

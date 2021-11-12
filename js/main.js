@@ -6,7 +6,7 @@ const w = 0.02;
 const h = 0.08;
 const positions = new Grid({
     startPoint: [-0.4, 0.47],
-    gridSize: 9,
+    gridSquares: 9,
     gridUnitLength: h,
     gridUnitWidth: w,
 }).gridElements;
@@ -106,6 +106,7 @@ let mainClock;
 let globalClock;
 let routineTimer;
 let grid;
+let aim;
 
 async function experimentInit() {
     // Create some handy timers
@@ -129,6 +130,17 @@ async function experimentInit() {
         });
         grid.push(visualElement);
     }
+
+    aim = new visual.Rect({
+        win: psychoJS.window,
+        pos: [-0.4, 0.47],
+        ori: 0,
+        fillColor: new util.Color("red"),
+        lineColor: new util.Color("red"),
+        width: 0.001,
+        height: 0.001,
+        size: 1,
+    })
 
     return Scheduler.Event.NEXT;
 }
@@ -167,6 +179,7 @@ function mainRoutineEachFrame() {
         for (let e of grid) {
             e.draw();
         }
+        aim.draw();
 
         // refresh the screen if continuing
         return Scheduler.Event.FLIP_REPEAT;

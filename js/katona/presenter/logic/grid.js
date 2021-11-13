@@ -1,29 +1,21 @@
-class GridElement {
-    constructor({ position, orientation, gridIndex }) {
-        this.position = position; // Array[float, float]
-        this.orientation = orientation; // int
-        this.gridIndex = gridIndex; // Array[int, int]
-    }
-}
-
-
 class Grid {
     constructor({ startPoint, gridSquares, gridUnitLength, gridUnitWidth }) {
         this.startPoint = startPoint;
         this.gridSquares = gridSquares;
+        this.gridUnitLength = gridUnitLength;
+        this.gridUnitWidth = gridUnitWidth;
 
         this.evenRowPositionShift = gridUnitWidth / 2 + gridUnitLength / 2;
         this.step = gridUnitLength + gridUnitWidth;
 
-        this.gridElements = [];
+        this.gridElements = {};
         this._createGrid();
     }
 
     _createGrid() {
         const gridRows = this.gridSquares * 2 + 1;
         for (let rowIndex = 0; rowIndex < gridRows; rowIndex++) {
-            const rowElements = this._createRow(rowIndex);
-            this.gridElements.push.apply(this.gridElements, rowElements);
+            this._createRow(rowIndex);
         }
     }
 
@@ -35,17 +27,28 @@ class Grid {
         const y = this.startPoint[1] - this.step * rowIndex / 2;
         const elementOrientation = isOdd ? 0 : 90;
 
-        const rowElements = [];
         for (let columnIndex = 0; columnIndex < columns; columnIndex++) {
-            const element = new GridElement({
+            const gridIndex = [rowIndex, columnIndex];
+            this.gridElements[gridIndex] = {
                 position: [x + this.step * columnIndex, y],
                 orientation: elementOrientation,
+                length: this.gridUnitLength,
+                width: this.gridUnitWidth,
                 gridIndex: [rowIndex, columnIndex]
-            });
-            rowElements.push(element);
+            };
         }
 
-        return rowElements;
+    }
+
+    convertRelativeIndexToAbsolute(relativeIndex) {
+        if (this.gridSquares % 2 !== 1) {
+            throw new Error('Five square Katona works only on odd grid');
+        }
+
+        const centerRow = this.gridSquares;
+        const centerColumn = Math.floor(this.gridSquares / 2);
+        const [relativeRow, relativeColumn] = relativeIndex;
+        return [centerRow + relativeRow, centerColumn + relativeColumn];
     }
 
 }

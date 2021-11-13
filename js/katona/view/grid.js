@@ -1,6 +1,29 @@
 import { util, visual } from '../../../lib/psychojs-2021.2.3.developer.js';
 
 
+class MovableElements {
+    constructor({ elements, defaultPositions }) {
+        this.elements = elements;
+        this._defaultElementPostions = defaultPositions;
+    }
+
+    returnToDefault() {
+        for (const movableElement of this.elements) {
+            const index = movableElement.name;
+            const { position, orientation } = this._defaultElementPostions[index];
+            movableElement.pos = position;
+            movableElement.ori = orientation;
+        }
+    }
+
+    setAutoDraw(toShow) {
+        for (const element of this.elements) {
+            element.setAutoDraw(toShow);
+        }
+    }
+
+}
+
 class VisualGrid {
     constructor({
                     window,
@@ -11,25 +34,31 @@ class VisualGrid {
                 }) {
         this._window = window;
         this.gridElements = [];
-        this.movableElements = [];
-        this._defaultElementPostions = {};
 
         for (const elementInfo of Object.values(grid.gridElements)) {
             const visualGridElement = this._createVisualElement(elementInfo, gridColor);
             this.gridElements.push(visualGridElement);
-
-            this._defaultElementPostions[elementInfo.gridIndex] = {
-                position: elementInfo.position,
-                orientation: elementInfo.orientation,
-            };
         }
 
+        const movableElements = [];
+        const defaultMovableElementsPositions = {};
         for (const relativeIndex of movableElementsRelativeIndexes) {
             const absoluteIndex = grid.convertRelativeIndexToAbsolute(relativeIndex);
             const elementInfo = grid.gridElements[absoluteIndex];
             const movableElement = this._createVisualElement(elementInfo, movableElementColor);
-            this.movableElements.push(movableElement);
+            movableElements.push(movableElement);
+
+            defaultMovableElementsPositions[elementInfo.gridIndex] = {
+                position: elementInfo.position,
+                orientation: elementInfo.orientation,
+            };
+
         }
+
+        this.movableElements = new MovableElements({
+            elements: movableElements,
+            defaultPositions: defaultMovableElementsPositions,
+        });
 
     }
 
@@ -47,13 +76,8 @@ class VisualGrid {
         });
     }
 
-    returnMovableElementsToDefaultPositions() {
-        for (const movableElement of this.movableElements) {
-            const index = movableElement.name;
-            const { position, orientation } = this._defaultElementPostions[index];
-            movableElement.pos = position;
-            movableElement.ori = orientation;
-        }
+    returnToDefault() {
+        this.movableElements.returnToDefault();
     }
 
     setAutoDraw(toShow) {
@@ -61,9 +85,7 @@ class VisualGrid {
             element.setAutoDraw(toShow);
         }
 
-        for (const element of this.movableElements) {
-            element.setAutoDraw(toShow);
-        }
+        this.movableElements.setAutoDraw(toShow);
     }
 }
 

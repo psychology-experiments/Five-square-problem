@@ -1,15 +1,8 @@
 ﻿// import {core, data, sound, util, visual} from '../lib/psychojs-2021.2.3.js';
 import { core, util, visual } from '../lib/psychojs-2021.2.3.developer.js';
 import { Grid } from './katona/presenter/logic/grid.js';
+import { VisualGrid } from './katona/view/grid.js';
 
-const w = 0.02;
-const h = 0.08;
-const positions = new Grid({
-    startPoint: [-0.4, 0.47],
-    gridSquares: 9,
-    gridUnitLength: h,
-    gridUnitWidth: w,
-}).gridElements;
 
 const { PsychoJS } = core;
 const { Scheduler } = util;
@@ -17,6 +10,15 @@ const { Scheduler } = util;
 // store info about the experiment session:
 const expName = 'Five square problem';
 const expInfo = { 'participant': '' };
+
+// experiment constants
+const MOVABLE_STICKS_INDEXES = [
+    [-1, -1], [0, -1], [1, -1],
+    [-2, 0], [-3, 0], [-2, 1],
+    [0, 0], [-1, 0], [1, 0], [0, 1],
+    [-1, 1], [0, 2], [1, 1],
+    [2, 0], [3, 0], [2, 1],
+];
 
 // init psychoJS:
 const psychoJS = new PsychoJS({
@@ -116,31 +118,33 @@ async function experimentInit() {
     // Initialize components for Routine "main"
     mainClock = new util.Clock();
 
-    grid = [];
-    for (let element of positions) {
-        const visualElement = new visual.Rect({
-            win: psychoJS.window,
-            pos: element.position,
-            ori: element.orientation,
-            fillColor: new util.Color("lightgrey"),
-            lineColor: new util.Color("lightgrey"),
-            width: w,
-            height: h,
-            size: 1,
-        });
-        grid.push(visualElement);
-    }
+    const w = 0.01;
+    const h = 0.09;
+    const gridInfo = new Grid({
+        startPoint: [-0.4, 0.47],
+        gridSquares: 9,
+        gridUnitLength: h,
+        gridUnitWidth: w,
+    });
+
+    grid = new VisualGrid({
+        window: psychoJS.window,
+        grid: gridInfo,
+        gridColor: 'lightgrey',
+        movableElementColor: 'black',
+        movableElementsRelativeIndexes: MOVABLE_STICKS_INDEXES,
+    });
 
     aim = new visual.Rect({
         win: psychoJS.window,
         pos: [-0.4, 0.47],
         ori: 0,
-        fillColor: new util.Color("red"),
-        lineColor: new util.Color("red"),
+        fillColor: new util.Color('red'),
+        lineColor: new util.Color('red'),
         width: 0.001,
         height: 0.001,
         size: 1,
-    })
+    });
 
     return Scheduler.Event.NEXT;
 }
@@ -156,6 +160,7 @@ function mainRoutineBegin() {
         mainClock.reset(); // clock
         frameN = -1;
 
+        grid.setAutoDraw(true);
         return Scheduler.Event.NEXT;
     };
 }
@@ -176,9 +181,6 @@ function mainRoutineEachFrame() {
             return quitPsychoJS('The [Escape] key was pressed. Goodbye!', false);
         }
 
-        for (let e of grid) {
-            e.draw();
-        }
         aim.draw();
 
         // refresh the screen if continuing

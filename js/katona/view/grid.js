@@ -37,6 +37,7 @@ class VisualGrid {
 
         for (const elementInfo of Object.values(grid.gridElements)) {
             const visualGridElement = this._createVisualElement(elementInfo, gridColor);
+            visualGridElement.occupied = false;
             this.gridElements.push(visualGridElement);
         }
 
@@ -48,6 +49,10 @@ class VisualGrid {
             const movableElement = this._createVisualElement(elementInfo, movableElementColor);
             movableElements.push(movableElement);
 
+            this.gridElements
+                .find(element => element.name === elementInfo.gridIndex)
+                .occupied = true;
+
             defaultMovableElementsPositions[elementInfo.gridIndex] = {
                 position: elementInfo.position,
                 orientation: elementInfo.orientation,
@@ -55,11 +60,10 @@ class VisualGrid {
 
         }
 
-        this.movableElements = new MovableElements({
+        this._movableElements = new MovableElements({
             elements: movableElements,
             defaultPositions: defaultMovableElementsPositions,
         });
-
     }
 
     _createVisualElement(elementInfo, color) {
@@ -76,8 +80,12 @@ class VisualGrid {
         });
     }
 
+    get movableElements() {
+        return this._movableElements.elements;
+    }
+
     returnToDefault() {
-        this.movableElements.returnToDefault();
+        this._movableElements.returnToDefault();
     }
 
     setAutoDraw(toShow) {
@@ -85,7 +93,7 @@ class VisualGrid {
             element.setAutoDraw(toShow);
         }
 
-        this.movableElements.setAutoDraw(toShow);
+        this._movableElements.setAutoDraw(toShow);
     }
 }
 

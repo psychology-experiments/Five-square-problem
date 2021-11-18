@@ -1,6 +1,8 @@
 ﻿// import {core, data, sound, util, visual} from '../lib/psychojs-2021.2.3.js';
 import { core, util, visual } from '../lib/psychojs-2021.2.3.developer.js';
+
 import { Grid } from './katona/presenter/logic/grid.js';
+import { GridElementMover } from './katona/presenter/logic/movement.js';
 import { VisualGrid } from './katona/view/grid.js';
 
 
@@ -108,7 +110,9 @@ let mainClock;
 let globalClock;
 let routineTimer;
 let grid;
+let mover;
 let aim;
+let mouz;
 
 async function experimentInit() {
     // Create some handy timers
@@ -134,6 +138,8 @@ async function experimentInit() {
         movableElementColor: 'black',
         movableElementsRelativeIndexes: MOVABLE_STICKS_INDEXES,
     });
+
+    mover = new GridElementMover({ window: psychoJS.window });
 
     aim = new visual.Rect({
         win: psychoJS.window,
@@ -181,6 +187,11 @@ function mainRoutineEachFrame() {
             return quitPsychoJS('The [Escape] key was pressed. Goodbye!', false);
         }
 
+        mover.checkMove({
+            movableElements: grid.movableElements,
+            gridElements: grid.gridElements,
+        });
+        mover.dragChosen();
         aim.draw();
 
         // refresh the screen if continuing

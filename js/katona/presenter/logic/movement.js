@@ -1,7 +1,5 @@
 import { core, util } from '../../../../lib/psychojs-2021.2.3.developer.js';
 
-import { calculateRotationMatrix, multiplyMatrices } from '../../general.js';
-
 
 class SingleClickMouse {
     constructor({ window, buttonToCheck }) {
@@ -82,6 +80,7 @@ class SingleClickMouse {
     }
 }
 
+
 class GridElementMover {
     constructor({ window }) {
         this._window = window;
@@ -95,13 +94,13 @@ class GridElementMover {
         this._chosenFromIndex = null;
     }
 
-    checkMove({ movableElements, gridElements }) {
+    checkMove(gridElements) {
         if (!this._clicker.isSingleClick()) return;
 
         if (this.chosenElement === null) {
-            this._chooseElement(movableElements, gridElements);
+            this._chooseElement(gridElements);
         } else {
-            this._placeElement(movableElements, gridElements);
+            this._placeElement(gridElements);
         }
     }
 
@@ -109,68 +108,43 @@ class GridElementMover {
         if (this.chosenElement === null) return;
         console.log('DRAGGING');
 
-        this.chosenElement.pos = this._clicker.getPosition();
+        this.chosenElement.position = this._clicker.getPosition();
 
         if (!this._clicker.isWheelMoved()) return;
         console.log('ROTATING');
 
-        this.chosenElement.ori = this.chosenElement.ori === 90 ? 0 : 90;
+        this.chosenElement.orientation = this.chosenElement.orientation === 90 ?
+            0 :
+            90;
     }
 
-    _getElementVertices(element) {
-        // workaround for psychoJS because its formulas do not pay attention for element orientation
-        let vertices = element._getVertices_px();
-        if (element.ori !== 0) {
-            vertices = multiplyMatrices(vertices, calculateRotationMatrix(element.ori));
-        }
+    _chooseElement(gridElements) {
+        console.log('CHOOSING');
+        for (const gridElement of gridElements) {
+            if (this._clicker.isPressedIn(gridElement)) {
+                if (!gridElement.occupied) return;
 
-        const elementCenter = util.to_px(element.pos, this._window.units, this._window);
-        return vertices.map(v =>
-            [elementCenter[0] + v[0], elementCenter[1] + v[1]]);
-    }
-
-    _chooseElement(movableElements, gridElements) {
-        const mousePosition = util.to_px(this._clicker.getPosition(), this._window.units, this._window);
-        for (const element of movableElements) {
-            const elementVertices = this._getElementVertices(element);
-            if (util.IsPointInsidePolygon(mousePosition, elementVertices)) {
-                console.log('CHOSEN', element.pos, element.ori);
-                this.chosenElement = element;
-                this._chosenElementIndex = element.name;
+                this.chosenElement = gridElement.giveMovableElement();
+                console.log('CHOSEN', this.chosenElement.position,
+                    this.chosenElement.orientation);
+                this._chosenElementIndex = this.chosenElement.name;
                 this._clicker.resetWheelData();
-                this._getGridIndexOfTakenElement(gridElements);
+                this._chosenFromIndex = gridElement.name;
                 break;
             }
         }
     }
 
-    _getGridIndexOfTakenElement(gridElements) {
-        console.log('TRYING TO FIND INDEX');
-        const mousePosition = util.to_px(this._clicker.getPosition(), this._window.units, this._window);
-        for (const element of gridElements) {
-            const elementVertices = this._getElementVertices(element);
-            if (util.IsPointInsidePolygon(mousePosition, elementVertices)) {
-                console.log('FOUND', element.pos, element.ori);
-                this._chosenFromIndex = element.name;
-                element.occupied = false;
-                break;
-            }
-        }
-    }
-
-    _placeElement(movableElements, gridElements) {
+    _placeElement(gridElements) {
         console.log('PLACING');
         const equalOrientationGridElements = gridElements.filter(
-            ({ ori }) => ori === this.chosenElement.ori);
+            ({ ori }) => ori === this.chosenElement.orientation);
 
-        const mousePosition = util.to_px(this._clicker.getPosition(), this._window.units, this._window);
         for (const gridElement of equalOrientationGridElements) {
-            const elementVertices = this._getElementVertices(gridElement);
-            if (util.IsPointInsidePolygon(mousePosition, elementVertices)) {
+            if (this._clicker.isPressedIn(gridElement)) {
                 if (gridElement.occupied) return;
 
-                this.chosenElement.pos = gridElement.pos;
-                gridElement.occupied = true;
+                gridElement.placeMovableElement(this.chosenElement);
 
                 this.chosenElement = null;
                 this._chosenElementIndex = null;
@@ -179,5 +153,6 @@ class GridElementMover {
         }
     }
 }
+
 
 export { GridElementMover };

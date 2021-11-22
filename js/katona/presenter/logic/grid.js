@@ -29,15 +29,14 @@ class Grid {
 
         for (let columnIndex = 0; columnIndex < columns; columnIndex++) {
             const gridIndex = [rowIndex, columnIndex];
-            this.gridElements[gridIndex] = {
+            this.gridElements[`[${gridIndex}]`] = {
                 position: [x + this.step * columnIndex, y],
                 orientation: elementOrientation,
                 length: this.gridUnitLength,
                 width: this.gridUnitWidth,
-                gridIndex: [rowIndex, columnIndex]
+                gridIndex: gridIndex,
             };
         }
-
     }
 
     convertRelativeIndexToAbsolute(relativeIndex) {
@@ -52,5 +51,6 @@ class Grid {
     }
 
 }
+
 
 export { Grid };

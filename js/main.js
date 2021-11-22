@@ -112,7 +112,6 @@ let routineTimer;
 let grid;
 let mover;
 let aim;
-let mouz;
 
 async function experimentInit() {
     // Create some handy timers
@@ -160,7 +159,7 @@ let t;
 let frameN;
 
 function mainRoutineBegin() {
-    return async function () {
+    return async function() {
         //------Prepare to start Routine 'trial'-------
         t = 0;
         mainClock.reset(); // clock
@@ -173,7 +172,7 @@ function mainRoutineBegin() {
 
 
 function mainRoutineEachFrame() {
-    return async function () {
+    return async function() {
         //------Loop for each frame of Routine 'main'-------
         // get current time
         t = mainClock.getTime();
@@ -184,13 +183,11 @@ function mainRoutineEachFrame() {
         // check for quit (typically the Esc key)
         if (psychoJS.experiment.experimentEnded ||
             psychoJS.eventManager.getKeys({ keyList: ['escape'] }).length > 0) {
-            return quitPsychoJS('The [Escape] key was pressed. Goodbye!', false);
+            return quitPsychoJS('The [Escape] key was pressed. Goodbye!',
+                false);
         }
 
-        mover.checkMove({
-            movableElements: grid.movableElements,
-            gridElements: grid.gridElements,
-        });
+        mover.checkMove(grid.gridElements);
         mover.dragChosen();
         aim.draw();
 
@@ -201,7 +198,7 @@ function mainRoutineEachFrame() {
 
 
 function mainRoutineEnd() {
-    return async function () {
+    return async function() {
         // the Routine "main" was not non-slip safe, so reset the non-slip timer
         routineTimer.reset();
 

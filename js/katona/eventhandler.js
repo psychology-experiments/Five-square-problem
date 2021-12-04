@@ -63,7 +63,7 @@ export function registerHandler({
     }
 }
 
-export function registerSingleHandler({
+export function registerSingleEventHandler({
     event,
     handler,
 }) {

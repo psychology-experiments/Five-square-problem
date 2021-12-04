@@ -1,16 +1,21 @@
 import { core, util } from '../../../../lib/psychojs-2021.2.3.developer.js';
 
 
-class SingleClickMouse {
+export class SingleClickMouse {
     constructor({ window, buttonToCheck }) {
         this._isPressed = true;
         this._timePressed = null;
+        this._isInitilized = false;
 
         const buttons = { left: 0, center: 1, right: 2 };
         this._checkButton = buttons[buttonToCheck];
 
         this._mouse = new core.Mouse({ win: window });
         this._mouse.leftButtonClock = new util.Clock();
+    }
+
+    get isInitialized() {
+        return this._isInitilized;
     }
 
     initialize() {
@@ -77,82 +82,52 @@ class SingleClickMouse {
 
     clearInput() {
         this._mouse.leftButtonClock.reset();
+        this._mouse.getWheelRel();
     }
 }
 
 
-class GridElementMover {
-    constructor({ window }) {
-        this._window = window;
-        this._clicker = new SingleClickMouse({
-            window: window,
-            buttonToCheck: 'left',
-        });
+export function chooseElement(grid, mouse) {
+    console.log('CHOOSING');
+    for (const gridElement of grid.getOccupiedGridElements()) {
+        if (mouse.isPressedIn(gridElement)) {
 
-        this.chosenElement = null;
-        this._chosenElementIndex = null;
-        this._chosenFromIndex = null;
-    }
-
-    checkMove(gridElements) {
-        if (!this._clicker.isSingleClick()) return;
-
-        if (this.chosenElement === null) {
-            this._chooseElement(gridElements);
-        } else {
-            this._placeElement(gridElements);
+            const chosenElement = gridElement.giveMovableElement();
+            console.log('CHOSEN',
+                chosenElement.position,
+                chosenElement.orientation);
+            const chosenElementIndex = chosenElement.name;
+            const chosenFromIndex = gridElement.name;
+            return chosenElement;
         }
     }
-
-    dragChosen() {
-        if (this.chosenElement === null) return;
-        console.log('DRAGGING');
-
-        this.chosenElement.position = this._clicker.getPosition();
-
-        if (!this._clicker.isWheelMoved()) return;
-        console.log('ROTATING');
-
-        this.chosenElement.orientation = this.chosenElement.orientation === 90 ?
-            0 :
-            90;
-    }
-
-    _chooseElement(gridElements) {
-        console.log('CHOOSING');
-        for (const gridElement of gridElements) {
-            if (this._clicker.isPressedIn(gridElement)) {
-                if (!gridElement.occupied) return;
-
-                this.chosenElement = gridElement.giveMovableElement();
-                console.log('CHOSEN', this.chosenElement.position,
-                    this.chosenElement.orientation);
-                this._chosenElementIndex = this.chosenElement.name;
-                this._clicker.resetWheelData();
-                this._chosenFromIndex = gridElement.name;
-                break;
-            }
-        }
-    }
-
-    _placeElement(gridElements) {
-        console.log('PLACING');
-        const equalOrientationGridElements = gridElements.filter(
-            ({ ori }) => ori === this.chosenElement.orientation);
-
-        for (const gridElement of equalOrientationGridElements) {
-            if (this._clicker.isPressedIn(gridElement)) {
-                if (gridElement.occupied) return;
-
-                gridElement.placeMovableElement(this.chosenElement);
-
-                this.chosenElement = null;
-                this._chosenElementIndex = null;
-                break;
-            }
-        }
-    }
+    return null;
 }
 
 
-export { GridElementMover };
+export function dragChosen(chosenElement, mouse) {
+    console.log('DRAGGING');
+
+    // chosenElement.position = mouse.getPosition();
+    chosenElement.position = mouse.getPosition();
+
+    if (!mouse.isWheelMoved()) return;
+    console.log('ROTATING');
+
+    chosenElement.orientation = chosenElement.orientation === 90 ?
+        0 :
+        90;
+}
+
+
+export function placeElement(chosenElement, grid, mouse) {
+    console.log('PLACING');
+
+    const { orientation } = chosenElement;
+    for (const gridElement of grid.getUnOccupiedGridElements(orientation)) {
+        if (mouse.isPressedIn(gridElement)) {
+            gridElement.placeMovableElement(chosenElement);
+            return true;
+        }
+    }
+}

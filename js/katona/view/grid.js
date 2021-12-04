@@ -51,7 +51,6 @@ class GridElement extends visual.Rect {
     // if (this._test === undefined) return;
     // console.log("CC", this._test)
     // this._test.setAutoDraw(toShow);
-    // this.setAutoDraw(toShow)
     // }
 
     _getVerticesPositionPixels(visualElement) {
@@ -109,6 +108,10 @@ class GridElement extends visual.Rect {
 
     get occupied() {
         return this._occupiedBy !== null;
+    }
+
+    get orientation() {
+        return this.ori;
     }
 
     placeMovableElement(movableElement) {
@@ -265,6 +268,16 @@ class VisualGrid {
             width: elementInfo.width,
             height: elementInfo.length,
             size: 1,
+        });
+    }
+
+    getOccupiedGridElements() {
+        return this.gridElements.filter(({occupied}) => occupied);
+    }
+
+    getUnOccupiedGridElements(elementOrientation) {
+        return this.gridElements.filter(({occupied, orientation}) => {
+            return orientation === elementOrientation && !occupied;
         });
     }
 

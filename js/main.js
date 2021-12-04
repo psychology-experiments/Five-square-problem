@@ -1,13 +1,17 @@
 ﻿// import {core, data, sound, util, visual} from '../lib/psychojs-2021.2.3.js';
 import { core, util, visual } from '../lib/psychojs-2021.2.3.developer.js';
 
+import * as eventHandler from './katona/eventhandler.js';
+import * as movement from './katona/presenter/logic/movement.js';
+
 import { Grid } from './katona/presenter/logic/grid.js';
-import { GridElementMover } from './katona/presenter/logic/movement.js';
 import { VisualGrid } from './katona/view/grid.js';
 
 
 const { PsychoJS } = core;
 const { Scheduler } = util;
+
+const { EVENT } = eventHandler;
 
 // store info about the experiment session:
 const expName = 'Five square problem';
@@ -55,6 +59,7 @@ psychoJS.scheduleCondition(() => true, flowScheduler, flowScheduler);
 // flowScheduler gets run if the participants presses OK
 flowScheduler.add(updateInfo); // add timeStamp
 flowScheduler.add(experimentInit);
+flowScheduler.add(eventHandlersInit);
 
 
 flowScheduler.add(mainRoutineBegin());
@@ -110,8 +115,8 @@ let mainClock;
 let globalClock;
 let routineTimer;
 let grid;
-let mover;
-let aim;
+
+let singleClick;
 
 async function experimentInit() {
     // Create some handy timers
@@ -138,18 +143,89 @@ async function experimentInit() {
         movableElementsRelativeIndexes: MOVABLE_STICKS_INDEXES,
     });
 
-    mover = new GridElementMover({ window: psychoJS.window });
-
-    aim = new visual.Rect({
-        win: psychoJS.window,
-        pos: [-0.4, 0.47],
-        ori: 0,
-        fillColor: new util.Color('red'),
-        lineColor: new util.Color('red'),
-        width: 0.001,
-        height: 0.001,
-        size: 1,
+    singleClick = new movement.SingleClickMouse({
+        window: psychoJS.window,
+        buttonToCheck: 'left',
     });
+
+    return Scheduler.Event.NEXT;
+}
+
+
+async function eventHandlersInit() {
+    // support functions
+    const handleNewClick = () => singleClick.clearInput();
+
+    const registerChoosingHandler = () => {
+        eventHandler.registerHandler({
+            event: EVENT.CLICK,
+            handler: gridElementChoosingHandler,
+            removeAfter: EVENT.CHOSEN,
+        });
+    };
+
+    const registerDraggingHandler = (mouse, chosenElement) => {
+        eventHandler.registerHandler({
+            event: EVENT.MOUSE_UPDATE,
+            handler: () => movement.dragChosen(chosenElement, mouse),
+            removeAfter: EVENT.PLACED,
+        });
+    };
+
+    const registerPlacingHandler = (chosenElement) => {
+        eventHandler.registerHandler({
+            event: EVENT.CLICK,
+            handler: () => gridElementPlacingHandler(chosenElement),
+            removeAfter: EVENT.PLACED,
+        });
+    };
+
+    // main handlers
+    const gridElementChoosingHandler = ((clicker) => {
+        const chosenElement = movement.chooseElement(grid, clicker);
+
+        if (chosenElement === null) return;
+
+        registerDraggingHandler(clicker, chosenElement);
+        registerPlacingHandler(chosenElement);
+
+        eventHandler.emitEvent(
+            EVENT.CHOSEN,
+            { chosenElement: chosenElement }
+        );
+    });
+
+    const gridElementPlacingHandler = (chosenElement) => {
+        const isPlaced = movement.placeElement(
+            chosenElement,
+            grid,
+            singleClick
+        );
+
+        if (!isPlaced) return;
+
+        registerChoosingHandler();
+
+        eventHandler.emitEvent(EVENT.PLACED, {});
+    };
+
+
+    // handlers registrations
+    eventHandler.registerHandler({
+        event: EVENT.CLICK,
+        handler: handleNewClick,
+    });
+
+    registerChoosingHandler();
+
+    // eventHandler.registerHandler({
+    //     event: EVENT.CLICK,
+    //     handler: console.log,
+    // });
+
+    // start interval events
+    setInterval(() =>
+        eventHandler.emitEvent(EVENT.MOUSE_UPDATE, singleClick), 10);
 
     return Scheduler.Event.NEXT;
 }
@@ -179,6 +255,14 @@ function mainRoutineEachFrame() {
         frameN = frameN + 1;// number of completed frames (so 0 is the first frame)
         // update/draw components on each frame
 
+        if (!singleClick.isInitialized && t >= 0) {
+            singleClick.initialize();
+        }
+
+        if (singleClick.isInitialized && singleClick.isSingleClick()) {
+            eventHandler.emitEvent(EVENT.CLICK, singleClick);
+        }
+
 
         // check for quit (typically the Esc key)
         if (psychoJS.experiment.experimentEnded ||
@@ -186,10 +270,6 @@ function mainRoutineEachFrame() {
             return quitPsychoJS('The [Escape] key was pressed. Goodbye!',
                 false);
         }
-
-        mover.checkMove(grid.gridElements);
-        mover.dragChosen();
-        aim.draw();
 
         // refresh the screen if continuing
         return Scheduler.Event.FLIP_REPEAT;

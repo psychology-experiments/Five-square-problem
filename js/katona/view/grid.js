@@ -272,11 +272,11 @@ class VisualGrid {
     }
 
     getOccupiedGridElements() {
-        return this.gridElements.filter(({occupied}) => occupied);
+        return this.gridElements.filter(({ occupied }) => occupied);
     }
 
     getUnOccupiedGridElements(elementOrientation) {
-        return this.gridElements.filter(({occupied, orientation}) => {
+        return this.gridElements.filter(({ occupied, orientation }) => {
             return orientation === elementOrientation && !occupied;
         });
     }

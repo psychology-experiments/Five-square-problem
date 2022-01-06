@@ -117,6 +117,7 @@ let routineTimer;
 let grid;
 
 let singleClick;
+let resetButton;
 
 async function experimentInit() {
     // Create some handy timers
@@ -148,6 +149,16 @@ async function experimentInit() {
         buttonToCheck: 'left',
     });
 
+    resetButton = new visual.ButtonStim({
+        win: psychoJS.window,
+        text: 'Заново',
+        fillColor: new util.Color('#011B56'),
+        pos: [0.75, 0.02],
+        size: [0.185, 0.07],
+        padding: 0,
+        letterHeight: 0.05,
+    });
+
     return Scheduler.Event.NEXT;
 }
 
@@ -155,6 +166,15 @@ async function experimentInit() {
 async function eventHandlersInit() {
     // support functions
     const handleNewClick = () => singleClick.clearInput();
+    const resetToDefaultState = () => {
+        eventHandler.removeAllExpiringHandlers();
+        grid.returnToDefault();
+        registerChoosingHandler();
+    }
+    const isResetButtonClick = () => {
+        if (resetButton.isClicked) {
+            eventHandler.emitEvent(EVENT.RESET, singleClick);
+        }}
 
     const registerChoosingHandler = () => {
         eventHandler.registerHandler({
@@ -180,7 +200,7 @@ async function eventHandlersInit() {
         });
     };
 
-    // main handlers
+    // main handlers (switching)
     const gridElementChoosingHandler = ((clicker) => {
         const chosenElement = movement.chooseElement(grid, clicker);
 
@@ -210,10 +230,20 @@ async function eventHandlersInit() {
     };
 
 
-    // handlers registrations
+    // permanent handlers registrations
     eventHandler.registerHandler({
         event: EVENT.CLICK,
         handler: handleNewClick,
+    });
+
+    eventHandler.registerHandler({
+        event: EVENT.CLICK,
+        handler: isResetButtonClick,
+    });
+
+    eventHandler.registerHandler({
+        event: EVENT.RESET,
+        handler: resetToDefaultState,
     });
 
     registerChoosingHandler();
@@ -242,6 +272,7 @@ function mainRoutineBegin() {
         frameN = -1;
 
         grid.setAutoDraw(true);
+        resetButton.setAutoDraw(true);
         return Scheduler.Event.NEXT;
     };
 }

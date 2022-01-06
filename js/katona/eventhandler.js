@@ -6,6 +6,7 @@ const EVENTS = Object.freeze({
     'CHOSEN': 1,
     'PLACED': 2,
     'MOUSE_UPDATE': 3,
+    'RESET': 4,
 });
 
 export const EVENT = new Proxy(EVENTS, {
@@ -40,7 +41,11 @@ const REMOVE_HANDLER_AFTER = new DefaultObject(Array);
 const EMITTER = new util.EventEmitter();
 
 
-function _remove_expired_handlers(event) {
+function _registerExpiringHandler(event, uuid, removeAfter) {
+    REMOVE_HANDLER_AFTER[removeAfter].push([event, uuid]);
+}
+
+function removeExpiredHandlers(event) {
     const toRemove = REMOVE_HANDLER_AFTER[event];
     if (toRemove.length === 0) return;
 
@@ -50,6 +55,11 @@ function _remove_expired_handlers(event) {
     delete REMOVE_HANDLER_AFTER[event];
 }
 
+export function removeAllExpiringHandlers() {
+    for (const event in EVENT) {
+        removeExpiredHandlers(EVENT[event]);
+    }
+}
 
 export function registerHandler({
     event,
@@ -59,7 +69,7 @@ export function registerHandler({
     const uuid = EMITTER.on(event, handler);
 
     if (removeAfter !== undefined) {
-        REMOVE_HANDLER_AFTER[removeAfter].push([event, uuid]);
+        _registerExpiringHandler(event, uuid, removeAfter);
     }
 }
 
@@ -72,6 +82,6 @@ export function registerSingleEventHandler({
 
 export function emitEvent(event, data) {
     EMITTER.emit(event, data);
-    _remove_expired_handlers(event);
+    removeExpiredHandlers(event);
 }
 

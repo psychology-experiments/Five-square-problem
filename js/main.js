@@ -6,6 +6,7 @@ import * as movement from './katona/presenter/logic/movement.js';
 
 import { Grid } from './katona/presenter/logic/grid.js';
 import { VisualGrid } from './katona/view/grid.js';
+import { FiveSquareKatona } from './katona/katona.js';
 
 
 const { PsychoJS } = core;
@@ -118,6 +119,7 @@ let grid;
 
 let singleClick;
 let resetButton;
+let katonaRules;
 
 async function experimentInit() {
     // Create some handy timers
@@ -159,22 +161,31 @@ async function experimentInit() {
         letterHeight: 0.05,
     });
 
+    katonaRules = new FiveSquareKatona(
+        { indexMapper: grid.getRelativeIdxToAbsoluteMapper() }
+    );
+
     return Scheduler.Event.NEXT;
 }
 
 
 async function eventHandlersInit() {
     // support functions
+
+    // without handleNewClick previous to choosing mouse wheel movement would
+    // trigger rotation of the chosen problem element
     const handleNewClick = () => singleClick.clearInput();
     const resetToDefaultState = () => {
         eventHandler.removeAllExpiringHandlers();
         grid.returnToDefault();
+        katonaRules.returnToDefault();
         registerChoosingHandler();
-    }
+    };
     const isResetButtonClick = () => {
         if (resetButton.isClicked) {
             eventHandler.emitEvent(EVENT.RESET, singleClick);
-        }}
+        }
+    };
 
     const registerChoosingHandler = () => {
         eventHandler.registerHandler({
@@ -216,17 +227,22 @@ async function eventHandlersInit() {
     });
 
     const gridElementPlacingHandler = (chosenElement) => {
-        const isPlaced = movement.placeElement(
+        const placedTo = movement.placeElement(
             chosenElement,
             grid,
             singleClick
         );
 
-        if (!isPlaced) return;
+        if (placedTo === null) return;
 
         registerChoosingHandler();
+        katonaRules.countMove(chosenElement.name, placedTo.name);
 
         eventHandler.emitEvent(EVENT.PLACED, {});
+
+        if (katonaRules.isMaxMovesMade()) {
+            eventHandler.emitEvent(EVENT.RESET, {});
+        }
     };
 
 
@@ -300,6 +316,10 @@ function mainRoutineEachFrame() {
             psychoJS.eventManager.getKeys({ keyList: ['escape'] }).length > 0) {
             return quitPsychoJS('The [Escape] key was pressed. Goodbye!',
                 false);
+        }
+
+        if (katonaRules.isSolved()) {
+            return Scheduler.Event.NEXT;
         }
 
         // refresh the screen if continuing

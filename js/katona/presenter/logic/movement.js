@@ -127,7 +127,8 @@ export function placeElement(chosenElement, grid, mouse) {
     for (const gridElement of grid.getUnOccupiedGridElements(orientation)) {
         if (mouse.isPressedIn(gridElement)) {
             gridElement.placeMovableElement(chosenElement);
-            return true;
+            return gridElement;
         }
     }
+    return null;
 }

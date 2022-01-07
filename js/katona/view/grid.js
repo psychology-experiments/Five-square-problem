@@ -215,6 +215,7 @@ class VisualGrid {
         movableElementsRelativeIndexes,
     }) {
         this._window = window;
+        this._grid = grid;
         this.gridElements = [];
 
         const movableElements = [];
@@ -269,6 +270,12 @@ class VisualGrid {
             height: elementInfo.length,
             size: 1,
         });
+    }
+
+    getRelativeIdxToAbsoluteMapper() {
+        return (relativeIndex) => {
+            return this._grid.convertRelativeIndexToAbsolute(relativeIndex);
+        };
     }
 
     getOccupiedGridElements() {

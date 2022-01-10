@@ -102,6 +102,7 @@ class GridElement extends visual.Rect {
         }
 
         const movableElement = this._occupiedBy;
+        movableElement.wasTakenFrom = this.name;
         this._occupiedBy = null;
         return movableElement;
     }
@@ -155,6 +156,7 @@ class SingleMovableElement {
         });
 
         this.name = `[${name}]`;
+        this.wasTakenFrom = defaultGridElement.name;
         this._defaultGridElement = defaultGridElement;
         this._defaultGridElement.addDefaultMovableElement(this);
     }

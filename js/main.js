@@ -236,12 +236,15 @@ async function eventHandlersInit() {
         if (placedTo === null) return;
 
         registerChoosingHandler();
-        katonaRules.countMove(chosenElement.name, placedTo.name);
+        katonaRules.countMove(
+            chosenElement.name,
+            chosenElement.wasTakenFrom,
+            placedTo.name);
 
         eventHandler.emitEvent(EVENT.PLACED, {});
 
         if (katonaRules.isMaxMovesMade()) {
-            eventHandler.emitEvent(EVENT.RESET, {});
+            eventHandler.emitEvent(EVENT.WRONG_SOLUTION, {});
         }
     };
 

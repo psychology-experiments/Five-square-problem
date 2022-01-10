@@ -65,10 +65,6 @@ export class SingleClickMouse {
         return this._mouse.getPos();
     }
 
-    resetWheelData() {
-        this._mouse.getWheelRel();
-    }
-
     isWheelMoved() {
         return Boolean(this._mouse.getWheelRel()[1]);
     }
@@ -88,17 +84,9 @@ export class SingleClickMouse {
 
 
 export function chooseElement(grid, mouse) {
-    console.log('CHOOSING');
     for (const gridElement of grid.getOccupiedGridElements()) {
         if (mouse.isPressedIn(gridElement)) {
-
-            const chosenElement = gridElement.giveMovableElement();
-            console.log('CHOSEN',
-                chosenElement.position,
-                chosenElement.orientation);
-            const chosenElementIndex = chosenElement.name;
-            const chosenFromIndex = gridElement.name;
-            return chosenElement;
+            return gridElement.giveMovableElement();
         }
     }
     return null;
@@ -106,13 +94,10 @@ export function chooseElement(grid, mouse) {
 
 
 export function dragChosen(chosenElement, mouse) {
-    console.log('DRAGGING');
-
     // chosenElement.position = mouse.getPosition();
     chosenElement.position = mouse.getPosition();
 
     if (!mouse.isWheelMoved()) return;
-    console.log('ROTATING');
 
     chosenElement.orientation = chosenElement.orientation === 90 ?
         0 :
@@ -121,8 +106,6 @@ export function dragChosen(chosenElement, mouse) {
 
 
 export function placeElement(chosenElement, grid, mouse) {
-    console.log('PLACING');
-
     const { orientation } = chosenElement;
     for (const gridElement of grid.getUnOccupiedGridElements(orientation)) {
         if (mouse.isPressedIn(gridElement)) {

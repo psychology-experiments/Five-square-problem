@@ -7,6 +7,7 @@ const EVENTS = Object.freeze({
     'PLACED': 2,
     'MOUSE_UPDATE': 3,
     'RESET': 4,
+    'WRONG_SOLUTION': 5,
 });
 
 export const EVENT = new Proxy(EVENTS, {
@@ -81,6 +82,7 @@ export function registerSingleEventHandler({
 }
 
 export function emitEvent(event, data) {
+    console.log("EMITTING", Object.keys(EVENT)[event])
     EMITTER.emit(event, data);
     removeExpiredHandlers(event);
 }

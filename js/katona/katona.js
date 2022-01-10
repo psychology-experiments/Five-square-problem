@@ -96,9 +96,13 @@ class AnswerChecker {
         }
     }
 
+    _canIdentifySolutionName() {
+        return this._chosenElements.length === 0 &&
+            this._currentSolutionName === null;
+    }
+
     addMove(chosenElement, placedTo) {
-        if (this._chosenElements.length === 0 &&
-            this._currentSolutionName === null) {
+        if (this._canIdentifySolutionName()) {
             this._identifySolutionName(chosenElement, placedTo);
         }
 

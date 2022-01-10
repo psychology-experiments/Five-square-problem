@@ -94,14 +94,11 @@ export function chooseElement(grid, mouse) {
 
 
 export function dragChosen(chosenElement, mouse) {
-    // chosenElement.position = mouse.getPosition();
     chosenElement.position = mouse.getPosition();
 
     if (!mouse.isWheelMoved()) return;
 
-    chosenElement.orientation = chosenElement.orientation === 90 ?
-        0 :
-        90;
+    chosenElement.orientation = chosenElement.orientation === 90 ? 0 : 90;
 }
 
 

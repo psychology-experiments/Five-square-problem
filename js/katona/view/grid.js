@@ -274,6 +274,22 @@ class VisualGrid {
         });
     }
 
+    _findPosition(identifier, dimension) {
+        return this.gridElements.reduce((current, { pos }) => {
+            const positionValue = pos[dimension];
+            return identifier(current, positionValue) ? current : positionValue;
+        });
+    }
+
+    getBoundingBox() {
+        const leftX = this._findPosition((a, b) => a < b, 0);
+        const rightX = this._findPosition((a, b) => a > b, 0);
+        const upY = this._findPosition((a, b) => a < b, 1);
+        const downY = this._findPosition((a, b) => a > b, 1);
+
+        console.log('XY', leftX, rightX, upY, downY);
+    }
+
     getRelativeIdxToAbsoluteMapper() {
         return (relativeIndex) => {
             return this._grid.convertRelativeIndexToAbsolute(relativeIndex);
@@ -308,4 +324,15 @@ class VisualGrid {
 }
 
 
-export { VisualGrid };
+class ScreenCover {
+    constructor({
+        startPosition,
+        size,
+        coverColor,
+        textColor,
+        timeToCover,
+    }) {}
+}
+
+
+export { VisualGrid, ScreenCover };

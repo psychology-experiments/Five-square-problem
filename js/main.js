@@ -145,6 +145,7 @@ async function experimentInit() {
         movableElementColor: 'black',
         movableElementsRelativeIndexes: MOVABLE_STICKS_INDEXES,
     });
+    grid.getBoundingBox();
 
     singleClick = new movement.SingleClickMouse({
         window: psychoJS.window,

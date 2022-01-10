@@ -82,12 +82,16 @@ class AnswerChecker {
 
     _identifySolutionName(chosenElement, placedTo) {
         for (const solutionName in this._correctSolutions) {
-            const {elements, positions} = this._correctSolutions[solutionName];
+            const {
+                elements,
+                positions
+            } = this._correctSolutions[solutionName];
             const isCorrectElement = elements.includes(chosenElement);
             const isCorrectPosition = positions.includes(placedTo);
 
             if (isCorrectElement && isCorrectPosition) {
                 this._currentSolutionName = solutionName;
+                break;
             }
         }
     }
@@ -105,7 +109,16 @@ class AnswerChecker {
     isSolved() {
         if (this._currentSolutionName === null) return false;
 
+        const solutionInfo = this._correctSolutions[this._currentSolutionName];
+        const allElementsTaken = this._chosenElements.every((e) => {
+            return solutionInfo.elements.includes(e);
+        });
 
+        const allPositionsUsed = this._placedTo.every((p) => {
+            return solutionInfo.positions.includes(p);
+        });
+
+        return allElementsTaken && allPositionsUsed;
     }
 
     reset() {

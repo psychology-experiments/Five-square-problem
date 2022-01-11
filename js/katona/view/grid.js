@@ -339,12 +339,34 @@ class VisualGrid {
 
 class ScreenCover {
     constructor({
-        startPosition,
-        size,
+        window,
+        boundingBoxOfSquares,
         coverColor,
         textColor,
         timeToCover,
-    }) {}
+    }) {
+        const width = Math.abs(boundingBoxOfSquares[0][0]) +
+            Math.abs(boundingBoxOfSquares[1][0]);
+        const height = Math.abs(boundingBoxOfSquares[0][1]) +
+            Math.abs(boundingBoxOfSquares[3][1]);
+        const position = [
+            (boundingBoxOfSquares[0][0] + boundingBoxOfSquares[2][0]) / 2,
+            (boundingBoxOfSquares[0][1] + boundingBoxOfSquares[2][1]) / 2];
+        this._cover = new visual.Rect({
+            win: window,
+            width: width,
+            height: height,
+            fillColor: coverColor,
+            lineColor: coverColor,
+            pos: position,
+            size: 1,
+            ori: 0,
+        });
+    }
+
+    setAutoDraw(toShow) {
+        this._cover.setAutoDraw(toShow);
+    }
 }
 
 

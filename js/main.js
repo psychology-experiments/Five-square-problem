@@ -5,7 +5,7 @@ import * as eventHandler from './katona/eventhandler.js';
 import * as movement from './katona/presenter/logic/movement.js';
 
 import { Grid } from './katona/presenter/logic/grid.js';
-import { VisualGrid } from './katona/view/grid.js';
+import { ScreenCover, VisualGrid } from './katona/view/grid.js';
 import { FiveSquareKatona } from './katona/katona.js';
 
 
@@ -120,6 +120,9 @@ let grid;
 let singleClick;
 let resetButton;
 let katonaRules;
+let screenCoverAfterWrongSolution;
+
+let test;
 
 async function experimentInit() {
     // Create some handy timers
@@ -145,7 +148,31 @@ async function experimentInit() {
         movableElementColor: 'black',
         movableElementsRelativeIndexes: MOVABLE_STICKS_INDEXES,
     });
-    grid.getBoundingBox();
+
+    screenCoverAfterWrongSolution = new ScreenCover({
+        window: psychoJS.window,
+        boundingBoxOfSquares: grid.getBoundingBox(),
+        coverColor: new util.Color("orange"),
+        textColor: new util.Color("black"),
+        timeToCover: 10,
+    });
+
+    test = [];
+    let i = 0;
+    const clrs = ['red', 'green', 'blue', 'yellow'];
+    for (const pos of grid.getBoundingBox()) {
+        console.log(pos);
+        test.push(new visual.Rect({
+            win: psychoJS.window,
+            fillColor: new util.Color(clrs[i]),
+            width: 0.001,
+            height: 0.001,
+            pos: pos,
+            size: 1,
+            // units: "pix",
+        }));
+        i++;
+    }
 
     singleClick = new movement.SingleClickMouse({
         window: psychoJS.window,
@@ -293,6 +320,8 @@ function mainRoutineBegin() {
 
         grid.setAutoDraw(true);
         resetButton.setAutoDraw(true);
+        test.forEach((tt) => tt.setAutoDraw(true));
+        screenCoverAfterWrongSolution.setAutoDraw(true);
         return Scheduler.Event.NEXT;
     };
 }

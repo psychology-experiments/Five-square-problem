@@ -274,20 +274,33 @@ class VisualGrid {
         });
     }
 
-    _findPosition(identifier, dimension) {
-        return this.gridElements.reduce((current, { pos }) => {
-            const positionValue = pos[dimension];
-            return identifier(current, positionValue) ? current : positionValue;
-        });
+    _getVerticesPositions() {
+        const vertices = [];
+        const elements = this.gridElements.length;
+
+        let minX = Infinity;
+        let maxX = -Infinity;
+        let minY = Infinity;
+        let maxY = -Infinity;
+
+        for (let i = 0; i < elements; i++) {
+            const [X, Y] = this.gridElements[i].pos;
+            minX = X < minX ? X : minX;
+            maxX = X > maxX ? X : maxX;
+            minY = Y < minY ? Y : minY;
+            maxY = Y > maxY ? Y : maxY;
+        }
+
+        vertices.push([minX, maxY]);
+        vertices.push([maxX, maxY]);
+        vertices.push([maxX, minY]);
+        vertices.push([minX, minY]);
+
+        return vertices;
     }
 
     getBoundingBox() {
-        const leftX = this._findPosition((a, b) => a < b, 0);
-        const rightX = this._findPosition((a, b) => a > b, 0);
-        const upY = this._findPosition((a, b) => a < b, 1);
-        const downY = this._findPosition((a, b) => a > b, 1);
-
-        console.log('XY', leftX, rightX, upY, downY);
+        return this._getVerticesPositions();
     }
 
     getRelativeIdxToAbsoluteMapper() {

@@ -276,14 +276,15 @@ class VisualGrid {
 
     _getVerticesPositions() {
         const vertices = [];
-        const elements = this.gridElements.length;
+        const elementsQTY = this.gridElements.length;
+        const shift = this.gridElements[0].width / 2;
 
         let minX = Infinity;
         let maxX = -Infinity;
         let minY = Infinity;
         let maxY = -Infinity;
 
-        for (let i = 0; i < elements; i++) {
+        for (let i = 0; i < elementsQTY; i++) {
             const [X, Y] = this.gridElements[i].pos;
             minX = X < minX ? X : minX;
             maxX = X > maxX ? X : maxX;
@@ -291,10 +292,10 @@ class VisualGrid {
             maxY = Y > maxY ? Y : maxY;
         }
 
-        vertices.push([minX, maxY]);
-        vertices.push([maxX, maxY]);
-        vertices.push([maxX, minY]);
-        vertices.push([minX, minY]);
+        vertices.push([minX - shift, maxY + shift]);
+        vertices.push([maxX + shift, maxY + shift]);
+        vertices.push([maxX + shift, minY - shift]);
+        vertices.push([minX - shift, minY - shift]);
 
         return vertices;
     }

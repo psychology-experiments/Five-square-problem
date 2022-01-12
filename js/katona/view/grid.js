@@ -395,6 +395,8 @@ class ScreenCover {
         this._cover.setAutoDraw(toShow);
         this._message.setAutoDraw(toShow);
 
+        if (!toShow) return;
+
         this._growId = setInterval(() => {
             this._cover.height += this._maxHeight * this._growBy;
             this._message._needUpdate = true;

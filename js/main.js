@@ -149,12 +149,15 @@ async function experimentInit() {
         movableElementsRelativeIndexes: MOVABLE_STICKS_INDEXES,
     });
 
+    const wrongSolutionMessage = `Данное решение неверное.
+    Пожалуйста, нажмите на кнопку:\n\n"Заново"`;
     screenCoverAfterWrongSolution = new ScreenCover({
         window: psychoJS.window,
         boundingBoxOfSquares: grid.getBoundingBox(),
-        coverColor: new util.Color("orange"),
-        textColor: new util.Color("black"),
-        timeToCover: 10,
+        coverColor: new util.Color('orange'),
+        textMessage: wrongSolutionMessage,
+        textColor: new util.Color('black'),
+        secondsToCover: 1,
     });
 
     test = [];
@@ -169,7 +172,6 @@ async function experimentInit() {
             height: 0.001,
             pos: pos,
             size: 1,
-            // units: "pix",
         }));
         i++;
     }

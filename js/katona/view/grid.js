@@ -343,30 +343,62 @@ class ScreenCover {
         window,
         boundingBoxOfSquares,
         coverColor,
+        textMessage,
         textColor,
-        timeToCover,
+        secondsToCover,
     }) {
-        const width = Math.abs(boundingBoxOfSquares[0][0]) +
-            Math.abs(boundingBoxOfSquares[1][0]);
-        const height = Math.abs(boundingBoxOfSquares[0][1]) +
-            Math.abs(boundingBoxOfSquares[3][1]);
-        const position = [
-            (boundingBoxOfSquares[0][0] + boundingBoxOfSquares[2][0]) / 2,
-            (boundingBoxOfSquares[0][1] + boundingBoxOfSquares[2][1]) / 2];
+        const [width, height, position] = this._findDimensionsParameters(
+            boundingBoxOfSquares
+        );
+
+        this._growBy = 0.005;
+        this._growRate = Math.floor(secondsToCover * this._growBy * 1000);
+        this._maxHeight = height;
+
         this._cover = new visual.Rect({
             win: window,
             width: width,
-            height: height,
+            height: this._maxHeight * this._growBy,
             fillColor: coverColor,
             lineColor: coverColor,
             pos: position,
             size: 1,
             ori: 0,
         });
+
+        this._message = new visual.TextStim({
+            win: window,
+            text: textMessage,
+            height: 0.04,
+            color: textColor,
+            pos: position,
+        });
+    }
+
+    _findDimensionsParameters(boundingBox) {
+        const width = Math.abs(boundingBox[0][0]) +
+            Math.abs(boundingBox[1][0]);
+        const height = Math.abs(boundingBox[0][1]) +
+            Math.abs(boundingBox[3][1]);
+        const position = [
+            (boundingBox[0][0] + boundingBox[2][0]) / 2,
+            (boundingBox[0][1] + boundingBox[2][1]) / 2];
+        return [width, height, position];
     }
 
     setAutoDraw(toShow) {
         this._cover.setAutoDraw(toShow);
+        this._message.setAutoDraw(toShow);
+        console.log(this._message)
+
+        const growId = setInterval(() => {
+            this._cover.height += this._maxHeight * this._growBy;
+            this._message._needUpdate = true;
+
+            if (this._cover.height >= this._maxHeight) {
+                clearInterval(growId);
+            }
+        }, this._growRate);
     }
 }
 

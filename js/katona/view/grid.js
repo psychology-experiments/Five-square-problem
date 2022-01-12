@@ -386,17 +386,21 @@ class ScreenCover {
         return [width, height, position];
     }
 
+    reset() {
+        clearInterval(this._growId);
+        this._cover.height = this._maxHeight * this._growBy;
+    }
+
     setAutoDraw(toShow) {
         this._cover.setAutoDraw(toShow);
         this._message.setAutoDraw(toShow);
-        console.log(this._message)
 
-        const growId = setInterval(() => {
+        this._growId = setInterval(() => {
             this._cover.height += this._maxHeight * this._growBy;
             this._message._needUpdate = true;
 
             if (this._cover.height >= this._maxHeight) {
-                clearInterval(growId);
+                clearInterval(this._growId);
             }
         }, this._growRate);
     }

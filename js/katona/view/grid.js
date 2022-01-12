@@ -389,6 +389,7 @@ class ScreenCover {
     reset() {
         clearInterval(this._growId);
         this._cover.height = this._maxHeight * this._growBy;
+        this.setAutoDraw(false);
     }
 
     setAutoDraw(toShow) {

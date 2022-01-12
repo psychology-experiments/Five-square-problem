@@ -160,22 +160,6 @@ async function experimentInit() {
         secondsToCover: 1,
     });
 
-    test = [];
-    let i = 0;
-    const clrs = ['red', 'green', 'blue', 'yellow'];
-    for (const pos of grid.getBoundingBox()) {
-        console.log(pos);
-        test.push(new visual.Rect({
-            win: psychoJS.window,
-            fillColor: new util.Color(clrs[i]),
-            width: 0.001,
-            height: 0.001,
-            pos: pos,
-            size: 1,
-        }));
-        i++;
-    }
-
     singleClick = new movement.SingleClickMouse({
         window: psychoJS.window,
         buttonToCheck: 'left',
@@ -209,12 +193,17 @@ async function eventHandlersInit() {
         eventHandler.removeAllExpiringHandlers();
         grid.returnToDefault();
         katonaRules.returnToDefault();
+        screenCoverAfterWrongSolution.reset();
         registerChoosingHandler();
     };
     const isResetButtonClick = () => {
         if (resetButton.isClicked) {
             eventHandler.emitEvent(EVENT.RESET, singleClick);
+            eventHandler.removeAllExpiringHandlers();
         }
+    };
+    const wrongSolutionHandler = () => {
+        screenCoverAfterWrongSolution.setAutoDraw(true);
     };
 
     const registerChoosingHandler = () => {
@@ -295,6 +284,11 @@ async function eventHandlersInit() {
         handler: resetToDefaultState,
     });
 
+    eventHandler.registerHandler({
+        event: EVENT.WRONG_SOLUTION,
+        handler: wrongSolutionHandler,
+    });
+
     registerChoosingHandler();
 
     // eventHandler.registerHandler({
@@ -322,8 +316,8 @@ function mainRoutineBegin() {
 
         grid.setAutoDraw(true);
         resetButton.setAutoDraw(true);
-        test.forEach((tt) => tt.setAutoDraw(true));
-        screenCoverAfterWrongSolution.setAutoDraw(true);
+        // test.forEach((tt) => tt.setAutoDraw(true));
+        // screenCoverAfterWrongSolution.setAutoDraw(true);
         return Scheduler.Event.NEXT;
     };
 }

@@ -46,7 +46,7 @@ function _registerExpiringHandler(event, uuid, removeAfter) {
     REMOVE_HANDLER_AFTER[removeAfter].push([event, uuid]);
 }
 
-function removeExpiredHandlers(event) {
+export function removeExpiredHandlers(event) {
     const toRemove = REMOVE_HANDLER_AFTER[event];
     if (toRemove.length === 0) return;
 

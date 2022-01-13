@@ -118,11 +118,17 @@ class GridElement extends visual.Rect {
     placeMovableElement(movableElement) {
         movableElement.position = this.pos;
         movableElement.orientation = this.ori;
+        movableElement._wasPlacedOn = this;
         this._occupiedBy = movableElement;
     }
 
     returnToDefault() {
         if (this._occupiedByDefalut === this._occupiedBy) return;
+
+        if (this._occupiedByDefalut === null && this._occupiedBy !== null) {
+            this._occupiedBy = null;
+            return;
+        }
 
         this.placeMovableElement(this._occupiedByDefalut);
     }
@@ -157,6 +163,7 @@ class SingleMovableElement {
 
         this.name = `[${name}]`;
         this.wasTakenFrom = defaultGridElement.name;
+        this._wasPlacedOn = defaultGridElement;
         this._defaultGridElement = defaultGridElement;
         this._defaultGridElement.addDefaultMovableElement(this);
     }
@@ -178,6 +185,9 @@ class SingleMovableElement {
     }
 
     returnToDefault() {
+        if (this._wasPlacedOn !== this._defaultGridElement) {
+            this._wasPlacedOn.returnToDefault();
+        }
         this._defaultGridElement.returnToDefault();
     }
 

@@ -197,13 +197,13 @@ async function eventHandlersInit() {
         registerChoosingHandler();
     };
     const isResetButtonClick = () => {
-        if (resetButton.isClicked) {
-            eventHandler.emitEvent(EVENT.RESET, singleClick);
-            eventHandler.removeAllExpiringHandlers();
-        }
+        if (!resetButton.isClicked) return;
+
+        eventHandler.emitEvent(EVENT.RESET, singleClick);
     };
     const wrongSolutionHandler = () => {
         screenCoverAfterWrongSolution.setAutoDraw(true);
+        eventHandler.removeExpiredHandlers(EVENT.CHOSEN);
     };
 
     const registerChoosingHandler = () => {

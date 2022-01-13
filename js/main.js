@@ -203,6 +203,14 @@ async function eventHandlersInit() {
     };
     const wrongSolutionHandler = () => {
         screenCoverAfterWrongSolution.setAutoDraw(true);
+
+        const checkScreenCoverWork = setInterval(() => {
+            if (screenCoverAfterWrongSolution.isCoveredScreen()) {
+                grid.setAutoDraw(false);
+                clearInterval(checkScreenCoverWork);
+            }
+        }, 300);
+
         eventHandler.removeExpiredHandlers(EVENT.CHOSEN);
     };
 

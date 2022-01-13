@@ -326,6 +326,7 @@ class VisualGrid {
 
     returnToDefault() {
         this._movableElements.returnToDefault();
+        this.setAutoDraw(true);
     }
 
     setAutoDraw(toShow) {
@@ -354,6 +355,7 @@ class ScreenCover {
         this._growBy = 0.005;
         this._growRate = Math.floor(secondsToCover * this._growBy * 1000);
         this._maxHeight = height;
+        this._isCoveredScreen = false;
 
         this._cover = new visual.Rect({
             win: window,
@@ -386,9 +388,14 @@ class ScreenCover {
         return [width, height, position];
     }
 
+    isCoveredScreen() {
+        return this._isCoveredScreen;
+    }
+
     reset() {
         clearInterval(this._growId);
         this._cover.height = this._maxHeight * this._growBy;
+        this._isCoveredScreen = false;
         this.setAutoDraw(false);
     }
 
@@ -404,6 +411,7 @@ class ScreenCover {
 
             if (this._cover.height >= this._maxHeight) {
                 clearInterval(this._growId);
+                this._isCoveredScreen = true;
             }
         }, this._growRate);
     }

@@ -125,11 +125,6 @@ class GridElement extends visual.Rect {
     returnToDefault() {
         if (this._occupiedByDefalut === this._occupiedBy) return;
 
-        if (this._occupiedByDefalut === null && this._occupiedBy !== null) {
-            this._occupiedBy = null;
-            return;
-        }
-
         this.placeMovableElement(this._occupiedByDefalut);
     }
 }
@@ -186,7 +181,8 @@ class SingleMovableElement {
 
     returnToDefault() {
         if (this._wasPlacedOn !== this._defaultGridElement) {
-            this._wasPlacedOn.returnToDefault();
+            // return to default grid element that did not have movable element
+            this._wasPlacedOn.giveMovableElement();
         }
         this._defaultGridElement.returnToDefault();
     }

@@ -80,4 +80,11 @@ class ScreenCover {
 }
 
 
-export { ScreenCover };
+class MovesTimeObserver {
+    constructor(first) {
+        this._lastMoveTime = null;
+    }
+}
+
+
+export { ScreenCover, MovesTimeObserver };

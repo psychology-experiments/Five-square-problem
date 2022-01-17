@@ -5,7 +5,8 @@ import * as eventHandler from './katona/eventhandler.js';
 import * as movement from './katona/presenter/logic/movement.js';
 
 import { Grid } from './katona/presenter/logic/grid.js';
-import { ScreenCover, VisualGrid } from './katona/view/grid.js';
+import { VisualGrid } from './katona/view/grid.js';
+import { ScreenCover } from './katona/optional.js';
 import { FiveSquareKatona } from './katona/katona.js';
 
 

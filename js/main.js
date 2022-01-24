@@ -28,6 +28,84 @@ const MOVABLE_STICKS_INDEXES = [
     [2, 0], [3, 0], [2, 1],
 ];
 
+const PROBES_DATA = {
+    'UpdateProbe': {
+        'probes': [
+            'materials/Probes/Update/1.png',
+            'materials/Probes/Update/2.png',
+            'materials/Probes/Update/3.png'
+        ],
+        'answers': null
+    },
+    'SwitchProbe': {
+        'probes': [
+            'materials/Probes/Switch/1.png',
+            'materials/Probes/Switch/2.png',
+            'materials/Probes/Switch/3.png',
+            'materials/Probes/Switch/4.png',
+            'materials/Probes/Switch/5.png',
+            'materials/Probes/Switch/6.png',
+            'materials/Probes/Switch/7.png',
+            'materials/Probes/Switch/8.png'
+        ],
+        'answers': [
+            'right',
+            'right',
+            'left',
+            'right',
+            'left',
+            'left',
+            'left',
+            'right'
+        ]
+    },
+    'InhibitionProbe': {
+        'probes': [
+            'materials/Probes/Inhibition/RR.png',
+            'materials/Probes/Inhibition/RG.png',
+            'materials/Probes/Inhibition/RB.png',
+            'materials/Probes/Inhibition/RY.png',
+            'materials/Probes/Inhibition/GR.png',
+            'materials/Probes/Inhibition/GG.png',
+            'materials/Probes/Inhibition/GB.png',
+            'materials/Probes/Inhibition/GY.png',
+            'materials/Probes/Inhibition/BR.png',
+            'materials/Probes/Inhibition/BG.png',
+            'materials/Probes/Inhibition/BB.png',
+            'materials/Probes/Inhibition/BY.png',
+            'materials/Probes/Inhibition/YR.png',
+            'materials/Probes/Inhibition/YG.png',
+            'materials/Probes/Inhibition/YB.png',
+            'materials/Probes/Inhibition/YY.png'
+        ],
+        'answers': [
+            'right',
+            'left',
+            'left',
+            'right',
+            'right',
+            'left',
+            'left',
+            'right',
+            'right',
+            'left',
+            'left',
+            'right',
+            'right',
+            'left',
+            'left',
+            'right'
+        ]
+    }
+};
+
+const PROBES_TO_DOWNLOAD = [];
+for (const probeName in PROBES_DATA) {
+    for (const stimulusFP of PROBES_DATA[probeName].probes) {
+        PROBES_TO_DOWNLOAD.push({ name: stimulusFP, path: stimulusFP });
+    }
+}
+
 // init psychoJS:
 const psychoJS = new PsychoJS({
     debug: true // TODO: remove when development done
@@ -76,7 +154,7 @@ flowScheduler.add(quitPsychoJS, '', true);
 await psychoJS.start({
     expName: expName,
     expInfo: expInfo,
-    resources: []
+    resources: PROBES_TO_DOWNLOAD,
 });
 
 psychoJS.experimentLogger.setLevel(core.Logger.ServerLevel.EXP);
@@ -179,6 +257,12 @@ async function experimentInit() {
     katonaRules = new FiveSquareKatona(
         { indexMapper: grid.getRelativeIdxToAbsoluteMapper() }
     );
+
+    // test = new visual.ImageStim({
+    //     win: psychoJS.window,
+    //     image: 'SwitchProbe 1.png',
+    //     pos: [0, 0],
+    // });
 
     return Scheduler.Event.NEXT;
 }
@@ -325,6 +409,7 @@ function mainRoutineBegin() {
 
         grid.setAutoDraw(true);
         resetButton.setAutoDraw(true);
+        // test.setAutoDraw(true);
         // test.forEach((tt) => tt.setAutoDraw(true));
         // screenCoverAfterWrongSolution.setAutoDraw(true);
         return Scheduler.Event.NEXT;

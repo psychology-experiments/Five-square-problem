@@ -1,64 +1,139 @@
-import { util, visual } from '../../lib/psychojs-2021.2.3.developer.js';
+import {util, visual} from '../../lib/psychojs-2021.2.3.developer.js';
 
 
-const INFORMATION_HANDLERS = {
-    Update: InformationSequence,
-    Switch: InformationMapper,
-    Inhibition: InformationMapper,
+const existingProbes = {
+    UpdateProbe, ShiftProbe, InhibitionProbe,
 };
 
 
-class InformationHandler {
-    constructor(probes) {
-        const probesQty = probes.lenght;
-        const uniqueProbesQty = new Set(probes).size;
-        if (probesQty === 0) {
-            throw Error('Probe without stimuli is prohibited');
-        }
+/**
+ * Check that from given settings it is possible to create valid probe
+ *
+ * @function
+ * @private
+ * @param {Array.<string>} probes - file paths to probes stimuli
+ * @param {Array.<string>} answers - correct answers for given probes
+ */
+function checkProbeSettings(probes, answers) {
+    const probesQty = probes.length;
+    const uniqueProbesQty = new Set(probes).size;
 
-        if (probesQty !== uniqueProbesQty) {
-            const notUniqueProbesErrorMessage = `
+    if (probesQty === 0) {
+        throw Error('Probe without stimuli is prohibited');
+    }
+
+    if (probesQty !== uniqueProbesQty) {
+        const notUniqueProbesErrorMessage = `
             Every probe must be unique.
             But there are ${probesQty - uniqueProbesQty} repeats in probes`;
-            throw Error(notUniqueProbesErrorMessage);
-        }
-
-        this._currentProbeIndex = null;
-        this._probes = probes;
+        throw Error(notUniqueProbesErrorMessage);
     }
 
-    nextProbe() {
-        // this._currentProbeIndex = choice(range(len(self.probes)));
-    }
+    if (answers === null) return;
 
-    getPressCorrectness(pressedKeyName) {
-        throw Error('Not implemented');
-    }
-
-    prepareForNewTask() {
-        throw Error('Not implemented');
+    const answersQty = answers.length;
+    if (probesQty !== answersQty) {
+        const notEnoughAnswersErrorMessage = `
+            Every probe must have the answer.
+            But there are ${probesQty} probes and ${answersQty} answers`;
+        throw Error(notEnoughAnswersErrorMessage);
     }
 }
 
 
-class InformationSequence extends InformationHandler {}
+class ProbeFactory {
+    constructor(type, probes, answers, window, position, startTime) {
+        const probeView = new ProbeView({window, probeFPs: probes, position});
+        return new existingProbes[type](probes, answers, probeView, startTime);
+    }
+}
+
+class BaseProbe {
+    constructor(probeView, startTime) {
+        this._probeView = probeView;
+        this._startTime = startTime;
+    }
+
+    nextProbe() {
+        throw Error("Not Implemented")
+    }
+
+    getPressCorrectness(pressedKeyName) {
+        throw Error("Not Implemented")
+    }
+
+    prepareForNewStart() {
+        throw Error("Not Implemented")
+    }
+
+    get position() {
+        return this._probeView.position;
+    }
+
+    set position(coordinates) {
+        this._probeView.position = coordinates;
+    }
+
+    setAutoDraw(toShow, t) {
+        if (t >= this._startTime) {
+            this._probeView.setAutoDraw(toShow);
+        }
+    }
+}
 
 
-class InformationMapper extends InformationHandler {}
+class UpdateProbe extends BaseProbe {
+    constructor(probes, answers, probeView, startTime) {
+        super(probeView, startTime);
+        this._probes = probes;
+
+        this._previousProbeIndex = null;
+        this._currentProbeIndex = null;
+    }
+
+    nextProbe() {
+        this._previousProbeIndex = this._currentProbeIndex;
+        this._currentProbeIndex = Math.floor(Math.random() * this._probes.length);
+        this._probeView.nextProbe(this._currentProbeIndex);
+    }
+
+    getPressCorrectness(pressedKeyName) {
+        if (this._previousProbeIndex === null) return true;
+
+        if (pressedKeyName === "right") {
+            return this._currentProbeIndex === this._previousProbeIndex;
+        } else if (pressedKeyName === "left") {
+            return this._currentProbeIndex !== this._previousProbeIndex;
+        } else {
+            throw `Key ${pressedKeyName} is prohibited for UpdateProbe`
+        }
+    }
+
+    prepareForNewStart() {
+        this._previousProbeIndex = null;
+        this._currentProbeIndex = null;
+    }
+}
+
+class ShiftProbe {
+    constructor(probes, answers, probeView) {
+        this._probeView = probeView;
+    }
+}
+
+class InhibitionProbe {
+    constructor(probes, answers, probeView) {
+        this._probeView = probeView;
+    }
+}
 
 
 class ProbePresenter {
     constructor({
-        window,
-        probes,
-        answers,
-        position,
-        startTime,
-    }) {
+                    window, probes, answers, position, startTime,
+                }) {
         this._view = new ProbeView({
-            window,
-            probeNames,
-            position,
+            window, probeNames, position,
         });
     }
 }
@@ -66,19 +141,15 @@ class ProbePresenter {
 
 class ProbeView {
     constructor({
-        window,
-        probeNames,
-        position,
-    }) {
+                    window, probeFPs, position,
+                }) {
         this._position = position;
         this._visualProbes = [];
         this._currentProbe = null;
 
-        for (const probeName of probeNames) {
+        for (const probeFP of probeFPs) {
             const probe = new visual.ImageStim({
-                win: window,
-                pos: this._position,
-                image: probeName,
+                win: window, pos: this._position, image: probeFP,
             });
             this._visualProbes.push(probe);
         }
@@ -105,4 +176,10 @@ class ProbeView {
 }
 
 
-export { ProbePresenter as Probe };
+function createProbe({probeType, probes, answers, window, position, startTime}) {
+    checkProbeSettings(probes, answers);
+    return new ProbeFactory(probeType, probes, answers, window, position, startTime);
+}
+
+
+export {createProbe};

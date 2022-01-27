@@ -245,7 +245,18 @@ const existingProbes = {
     InhibitionProbe,
 };
 
-
+/**
+ * Create probes of chosen type
+ *
+ * @function
+ * @public
+ * @param {string} probeType - file paths to probes stimuli
+ * @param {Array.<string>} probes - file paths to probes stimuli
+ * @param {Array.<string>} answers - correct answers for given probes
+ * @param {core.Window} window - object to display stimuli
+ * @param {[x, y]} position - position of probes on screen
+ * @param {number} startTime - time after routine start when probe should be drawn
+ */
 function createProbe({
     probeType,
     probes,

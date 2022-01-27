@@ -166,6 +166,38 @@ class InhibitionProbe extends BaseProbe {
         super(probeView, startTime);
         this._probes = probes;
         this._answers = answers;
+
+        this._congruentIncongruentRatio = 1 / 6;
+
+        const indexedProbes = probes.
+            map((v) => v.split('/').slice(-1)[0].slice(0, 2)).
+            map((v, i) => [i, v]);
+        const congruentProbes = indexedProbes.
+            filter((v) => v[1][0] === v[1][1]).
+            map((v) => v[0]);
+        const incongruentProbes = indexedProbes.
+            filter((v) => v[1][0] !== v[1][1]).
+            map((v) => v[0]);
+        this._probesGroups = [congruentProbes, incongruentProbes];
+        console.log(this._probesGroups);
+    }
+
+    nextProbe() {
+        const group = Math.random() <= this._congruentIncongruentRatio ? 0 : 1;
+        const groupStimuli = this._probesGroups[group];
+        const randomIndex = Math.floor(Math.random() * groupStimuli.length);
+
+        this._currentProbeIndex = groupStimuli[randomIndex];
+        this._probeView.setNextProbe(this._currentProbeIndex);
+
+    }
+
+    getPressCorrectness(pressedKeyName) {
+        return this._answers[this._currentProbeIndex] === pressedKeyName;
+    }
+
+    prepareForNewStart() {
+        this._currentProbeIndex = null;
     }
 }
 

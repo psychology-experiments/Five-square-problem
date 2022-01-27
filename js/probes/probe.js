@@ -1,5 +1,7 @@
 import { util, visual } from '../../lib/psychojs-2021.2.3.developer.js';
 
+import { cycle } from '../katona/general.js';
+
 
 /**
  * Check that from given settings it is possible to create valid probe
@@ -123,11 +125,43 @@ class ShiftProbe extends BaseProbe {
         super(probeView, startTime);
         this._probes = probes;
         this._answers = answers;
+
+        const repeatStimuli = 2;
+        const blackIndexes = [0, 1, 4, 5];
+        const blueIndexes = [2, 3, 6, 7];
+
+        const rightSequence = [];
+        for (const stimuli of [blackIndexes, blueIndexes]) {
+            for (let time = 0; time < repeatStimuli; time++) {
+                rightSequence.push(stimuli);
+            }
+        }
+
+        this._rightSequence = cycle(rightSequence);
+
+        this._currentProbeIndex = null;
     }
+
+    nextProbe() {
+        const currentStimuli = this._rightSequence.next();
+        const randomIndex = Math.floor(Math.random() * currentStimuli.length);
+        this._currentProbeIndex = currentStimuli[randomIndex];
+        this._probeView.setNextProbe(this._currentProbeIndex);
+
+    }
+
+    getPressCorrectness(pressedKeyName) {
+        return this._answers[this._currentProbeIndex] === pressedKeyName;
+    }
+
+    prepareForNewStart() {
+        this._currentProbeIndex = null;
+    }
+
 }
 
 
-class InhibitionProbe extends BaseProbe{
+class InhibitionProbe extends BaseProbe {
     constructor(probes, answers, probeView, startTime) {
         super(probeView, startTime);
         this._probes = probes;

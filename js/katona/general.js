@@ -13,3 +13,24 @@ export const multiplyMatrices = (m1, m2) => {
         });
     });
 };
+
+/**
+ * Return elements from the iterable until it is exhausted. Then repeat the sequence indefinitely.
+ *
+ * @function
+ * @public
+ * @param {Iterable<T>} iterable - any iterable to cycle through
+ */
+export function * cycle(iterable) {
+    const saved = [];
+    for (const element of iterable) {
+        yield element;
+        saved.push(element);
+    }
+    const length = saved.length;
+    while (saved) {
+        for (let i = 0; i < length; i++) {
+            yield saved[i];
+        }
+    }
+}

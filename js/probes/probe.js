@@ -118,16 +118,20 @@ class UpdateProbe extends BaseProbe {
 }
 
 
-class ShiftProbe {
-    constructor(probes, answers, probeView) {
-        this._probeView = probeView;
+class ShiftProbe extends BaseProbe {
+    constructor(probes, answers, probeView, startTime) {
+        super(probeView, startTime);
+        this._probes = probes;
+        this._answers = answers;
     }
 }
 
 
-class InhibitionProbe {
-    constructor(probes, answers, probeView) {
-        this._probeView = probeView;
+class InhibitionProbe extends BaseProbe{
+    constructor(probes, answers, probeView, startTime) {
+        super(probeView, startTime);
+        this._probes = probes;
+        this._answers = answers;
     }
 }
 

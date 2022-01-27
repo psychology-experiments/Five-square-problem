@@ -143,7 +143,7 @@ class ShiftProbe extends BaseProbe {
     }
 
     nextProbe() {
-        const currentStimuli = this._rightSequence.next();
+        const currentStimuli = this._rightSequence.next().value;
         const randomIndex = Math.floor(Math.random() * currentStimuli.length);
         this._currentProbeIndex = currentStimuli[randomIndex];
         this._probeView.setNextProbe(this._currentProbeIndex);

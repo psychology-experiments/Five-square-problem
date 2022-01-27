@@ -1,9 +1,4 @@
-import {util, visual} from '../../lib/psychojs-2021.2.3.developer.js';
-
-
-const existingProbes = {
-    UpdateProbe, ShiftProbe, InhibitionProbe,
-};
+import { util, visual } from '../../lib/psychojs-2021.2.3.developer.js';
 
 
 /**
@@ -43,10 +38,11 @@ function checkProbeSettings(probes, answers) {
 
 class ProbeFactory {
     constructor(type, probes, answers, window, position, startTime) {
-        const probeView = new ProbeView({window, probeFPs: probes, position});
+        const probeView = new ProbeView({ window, probeFPs: probes, position });
         return new existingProbes[type](probes, answers, probeView, startTime);
     }
 }
+
 
 class BaseProbe {
     constructor(probeView, startTime) {
@@ -55,15 +51,15 @@ class BaseProbe {
     }
 
     nextProbe() {
-        throw Error("Not Implemented")
+        throw Error('Not Implemented');
     }
 
     getPressCorrectness(pressedKeyName) {
-        throw Error("Not Implemented")
+        throw Error('Not Implemented');
     }
 
     prepareForNewStart() {
-        throw Error("Not Implemented")
+        throw Error('Not Implemented');
     }
 
     get position() {
@@ -75,6 +71,11 @@ class BaseProbe {
     }
 
     setAutoDraw(toShow, t) {
+        if (!toShow) {
+            this._probeView.setAutoDraw(false);
+            return;
+        }
+
         if (t >= this._startTime) {
             this._probeView.setAutoDraw(toShow);
         }
@@ -93,19 +94,20 @@ class UpdateProbe extends BaseProbe {
 
     nextProbe() {
         this._previousProbeIndex = this._currentProbeIndex;
-        this._currentProbeIndex = Math.floor(Math.random() * this._probes.length);
-        this._probeView.nextProbe(this._currentProbeIndex);
+        this._currentProbeIndex = Math.floor(
+            Math.random() * this._probes.length);
+        this._probeView.setNextProbe(this._currentProbeIndex);
     }
 
     getPressCorrectness(pressedKeyName) {
         if (this._previousProbeIndex === null) return true;
 
-        if (pressedKeyName === "right") {
+        if (pressedKeyName === 'right') {
             return this._currentProbeIndex === this._previousProbeIndex;
-        } else if (pressedKeyName === "left") {
+        } else if (pressedKeyName === 'left') {
             return this._currentProbeIndex !== this._previousProbeIndex;
         } else {
-            throw `Key ${pressedKeyName} is prohibited for UpdateProbe`
+            throw `Key ${pressedKeyName} is prohibited for UpdateProbe`;
         }
     }
 
@@ -115,11 +117,13 @@ class UpdateProbe extends BaseProbe {
     }
 }
 
+
 class ShiftProbe {
     constructor(probes, answers, probeView) {
         this._probeView = probeView;
     }
 }
+
 
 class InhibitionProbe {
     constructor(probes, answers, probeView) {
@@ -128,21 +132,10 @@ class InhibitionProbe {
 }
 
 
-class ProbePresenter {
-    constructor({
-                    window, probes, answers, position, startTime,
-                }) {
-        this._view = new ProbeView({
-            window, probeNames, position,
-        });
-    }
-}
-
-
 class ProbeView {
     constructor({
-                    window, probeFPs, position,
-                }) {
+        window, probeFPs, position,
+    }) {
         this._position = position;
         this._visualProbes = [];
         this._currentProbe = null;
@@ -176,10 +169,25 @@ class ProbeView {
 }
 
 
-function createProbe({probeType, probes, answers, window, position, startTime}) {
+const existingProbes = {
+    UpdateProbe,
+    ShiftProbe,
+    InhibitionProbe,
+};
+
+
+function createProbe({
+    probeType,
+    probes,
+    answers,
+    window,
+    position,
+    startTime
+}) {
     checkProbeSettings(probes, answers);
-    return new ProbeFactory(probeType, probes, answers, window, position, startTime);
+    return new ProbeFactory(probeType, probes, answers, window, position,
+        startTime);
 }
 
 
-export {createProbe};
+export { createProbe };

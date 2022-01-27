@@ -8,12 +8,17 @@ import { Grid } from './katona/presenter/logic/grid.js';
 import { VisualGrid } from './katona/view/grid.js';
 import { ScreenCover } from './katona/optional.js';
 import { FiveSquareKatona } from './katona/katona.js';
+import { createProbe } from './probes/probe.js';
 
 
 const { PsychoJS } = core;
 const { Scheduler } = util;
 
 const { EVENT } = eventHandler;
+
+// Development constants
+const SHOW_PROBES = true;
+
 
 // store info about the experiment session:
 const expName = 'Five square problem';
@@ -119,22 +124,24 @@ psychoJS.openWindow({
     waitBlanking: true
 });
 psychoJS.schedule(checkDeviceIsPermittedToUse); // at the start check that device is permitted
-
-
-// schedule the experiment: (turned off during development) TODO: remove when script ready
-// psychoJS.schedule(psychoJS.gui.DlgFromDict({
-//     dictionary: expInfo,
-//     title: expName
-// }));
-
 const flowScheduler = new Scheduler(psychoJS);
-// const dialogCancelScheduler = new Scheduler(psychoJS); TODO: uncomment when script ready
-// psychoJS.scheduleCondition(function () {
-//     return (psychoJS.gui.dialogComponent.button === 'OK');
-// }, flowScheduler, dialogCancelScheduler);
 
-// during development start experiment without dialog component TODO: remove when script ready
-psychoJS.scheduleCondition(() => true, flowScheduler, flowScheduler);
+if (SHOW_PROBES) {
+    // schedule the experiment
+    psychoJS.schedule(psychoJS.gui.DlgFromDict({
+        dictionary: expInfo,
+        title: expName
+    }));
+    const dialogCancelScheduler = new Scheduler(psychoJS);
+    psychoJS.scheduleCondition(function() {
+        return (psychoJS.gui.dialogComponent.button === 'OK');
+    }, flowScheduler, dialogCancelScheduler);
+} else {
+    // during development start experiment without dialog component if w/o probes
+    // TODO: remove when script ready
+    psychoJS.scheduleCondition(() => true, flowScheduler, flowScheduler);
+}
+
 
 // flowScheduler gets run if the participants presses OK
 flowScheduler.add(updateInfo); // add timeStamp
@@ -151,6 +158,7 @@ flowScheduler.add(quitPsychoJS, '', true);
 // dialogCancelScheduler.add(quitPsychoJS, '', false);
 
 // load resources for experiment (during or after dialog component)
+console.log(PROBES_TO_DOWNLOAD)
 await psychoJS.start({
     expName: expName,
     expInfo: expInfo,
@@ -200,6 +208,7 @@ let singleClick;
 let resetButton;
 let katonaRules;
 let screenCoverAfterWrongSolution;
+let probe;
 
 let test;
 
@@ -257,6 +266,18 @@ async function experimentInit() {
     katonaRules = new FiveSquareKatona(
         { indexMapper: grid.getRelativeIdxToAbsoluteMapper() }
     );
+
+    if (SHOW_PROBES) {
+        probe = createProbe({
+            probeType: 'UpdateProbe',
+            probes: PROBES_DATA.UpdateProbe.probes,
+            answers: PROBES_DATA.UpdateProbe.answers,
+            window: psychoJS.window,
+            position: [0.3, 0.3],
+            startTime: 0.1,
+        });
+    }
+
 
     // test = new visual.ImageStim({
     //     win: psychoJS.window,
@@ -407,6 +428,9 @@ function mainRoutineBegin() {
         mainClock.reset(); // clock
         frameN = -1;
 
+        console.log(probe);
+        probe.nextProbe();
+        probe.setAutoDraw(true, 0.3);
         grid.setAutoDraw(true);
         resetButton.setAutoDraw(true);
         // test.setAutoDraw(true);

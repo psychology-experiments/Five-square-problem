@@ -1,4 +1,4 @@
-import { util, visual } from '../../lib/psychojs-2021.2.3.developer.js';
+import { visual } from '../../lib/psychojs-2021.2.3.developer.js';
 
 import { cycle } from '../katona/general.js';
 

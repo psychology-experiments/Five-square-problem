@@ -268,10 +268,11 @@ async function experimentInit() {
     );
 
     if (SHOW_PROBES) {
+        const probeType = "ShiftProbe";
         probe = createProbe({
-            probeType: 'UpdateProbe',
-            probes: PROBES_DATA.UpdateProbe.probes,
-            answers: PROBES_DATA.UpdateProbe.answers,
+            probeType: probeType,
+            probes: PROBES_DATA[probeType].probes,
+            answers: PROBES_DATA[probeType].answers,
             window: psychoJS.window,
             position: [0.3, 0.3],
             startTime: 0.1,

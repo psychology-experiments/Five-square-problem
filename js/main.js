@@ -42,7 +42,7 @@ const PROBES_DATA = {
         ],
         'answers': null
     },
-    'SwitchProbe': {
+    'ShiftProbe': {
         'probes': [
             'materials/Probes/Switch/1.png',
             'materials/Probes/Switch/2.png',

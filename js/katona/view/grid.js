@@ -308,6 +308,14 @@ class VisualGrid {
         return vertices;
     }
 
+    /**
+     * Return [x, y] positions of vertices in following order:
+     * upper-left, upper-right, bottom-right, bottom-left
+     *
+     * @function
+     * @public
+     * @returns {Array.<Array.<Number>>}
+     */
     getBoundingBox() {
         return this._getVerticesPositions();
     }

@@ -1,4 +1,4 @@
-import { util, visual } from '../../lib/psychojs-2021.2.3.developer.js';
+import { core, util, visual } from '../../lib/psychojs-2021.2.3.developer.js';
 
 
 class ScreenCover {
@@ -81,8 +81,15 @@ class ScreenCover {
 
 
 class MovesTimeObserver {
-    constructor(first) {
+    constructor() {
         this._lastMoveTime = null;
+
+        this._test = 0;
+    }
+
+    isImpasse(testProbe) {
+        if (testProbe) this._test += 1;
+        return testProbe && this._test < 3;
     }
 }
 

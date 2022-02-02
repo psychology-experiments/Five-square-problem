@@ -527,6 +527,8 @@ function mainRoutineEnd() {
         grid.status = core.NOT_STARTED;
         resetButton.status = core.NOT_STARTED;
 
+        // TODO: check all states and make sure Katona is stopped during probe
+        singleClick.stop();
         grid.setAutoDraw(false);
         resetButton.setAutoDraw(false);
 

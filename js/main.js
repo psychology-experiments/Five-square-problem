@@ -6,7 +6,7 @@ import * as movement from './katona/presenter/logic/movement.js';
 
 import { Grid } from './katona/presenter/logic/grid.js';
 import { VisualGrid } from './katona/view/grid.js';
-import { ScreenCover } from './katona/optional.js';
+import { ScreenCover, MovesTimeObserver } from './katona/optional.js';
 import { FiveSquareKatona } from './katona/katona.js';
 import { createProbe } from './probes/probe.js';
 
@@ -17,7 +17,9 @@ const { Scheduler } = util;
 const { EVENT } = eventHandler;
 
 // Development constants
-const SHOW_PROBES = true;
+const DOWNLOAD_RESOURCES = true;
+const SHOW_PROBES = DOWNLOAD_RESOURCES && true;
+const IMPASSE_INTERRUPTION_TIME = 3;
 
 
 // store info about the experiment session:
@@ -126,9 +128,11 @@ psychoJS.openWindow({
 psychoJS.schedule(checkDeviceIsPermittedToUse); // at the start check that device is permitted
 const flowScheduler = new Scheduler(psychoJS);
 
-if (SHOW_PROBES) {
+if (DOWNLOAD_RESOURCES) {
     // schedule the experiment
     psychoJS.schedule(psychoJS.gui.DlgFromDict({
+        logoUrl: './materials/favicon.ico',
+        // TODO: add text attribute
         dictionary: expInfo,
         title: expName
     }));
@@ -138,7 +142,6 @@ if (SHOW_PROBES) {
     }, flowScheduler, dialogCancelScheduler);
 } else {
     // during development start experiment without dialog component if w/o probes
-    // TODO: remove when script ready
     psychoJS.scheduleCondition(() => true, flowScheduler, flowScheduler);
 }
 
@@ -149,16 +152,14 @@ flowScheduler.add(experimentInit);
 flowScheduler.add(eventHandlersInit);
 
 
-flowScheduler.add(mainRoutineBegin());
+flowScheduler.add(mainRoutineBegin(true));
 flowScheduler.add(mainRoutineEachFrame());
 flowScheduler.add(mainRoutineEnd());
-flowScheduler.add(quitPsychoJS, '', true);
 
 // quit if user presses Cancel in dialog box: TODO: uncomment when script ready
 // dialogCancelScheduler.add(quitPsychoJS, '', false);
 
 // load resources for experiment (during or after dialog component)
-console.log(PROBES_TO_DOWNLOAD)
 await psychoJS.start({
     expName: expName,
     expInfo: expInfo,
@@ -182,6 +183,21 @@ async function checkDeviceIsPermittedToUse() {
 }
 
 
+function prepareReturnToMainRoutine() {
+    probe.setAutoDraw(false, t);
+    flowScheduler.add(mainRoutineBegin(false));
+    flowScheduler.add(mainRoutineEachFrame());
+    flowScheduler.add(mainRoutineEnd());
+}
+
+
+function prepareImpasseRoutine() {
+    flowScheduler.add(probesDuringImpasse());
+    routineTimer.reset(IMPASSE_INTERRUPTION_TIME);
+    probe.prepareForNewStart();
+}
+
+
 async function updateInfo() {
     expInfo.date = util.MonotonicClock.getDateStr();  // add a simple timestamp
     expInfo.expName = expName;
@@ -201,6 +217,7 @@ async function updateInfo() {
 
 let mainClock;
 let globalClock;
+let impasseProbesClock;
 let routineTimer;
 let grid;
 
@@ -209,6 +226,7 @@ let resetButton;
 let katonaRules;
 let screenCoverAfterWrongSolution;
 let probe;
+let movesObserver;
 
 let test;
 
@@ -217,7 +235,10 @@ async function experimentInit() {
     globalClock = new util.Clock();  // to track the time since experiment started
     routineTimer = new util.CountdownTimer();  // to track time remaining of each (non-slip) routine
 
-    // Initialize components for Routine "main"
+    // Initialize components for Routine "probesDuringImpasse"
+    impasseProbesClock = new util.Clock(); // to track the time since experiment started
+
+    // Initialize components for Routine "mainRoutine"
     mainClock = new util.Clock();
 
     const w = 0.01;
@@ -268,17 +289,19 @@ async function experimentInit() {
     );
 
     if (SHOW_PROBES) {
-        const probeType = "ShiftProbe";
+        // TODO: make random or arbitrary choice of probes at experiment start
+        const probeType = 'ShiftProbe';
         probe = createProbe({
             probeType: probeType,
             probes: PROBES_DATA[probeType].probes,
             answers: PROBES_DATA[probeType].answers,
             window: psychoJS.window,
-            position: [0.3, 0.3],
+            position: [0.0, 0.0],
             startTime: 0.1,
         });
     }
 
+    movesObserver = new MovesTimeObserver();
 
     // test = new visual.ImageStim({
     //     win: psychoJS.window,
@@ -422,18 +445,17 @@ async function eventHandlersInit() {
 let t;
 let frameN;
 
-function mainRoutineBegin() {
+function mainRoutineBegin(firstStart) {
     return async function() {
         //------Prepare to start Routine 'trial'-------
-        t = 0;
-        mainClock.reset(); // clock
-        frameN = -1;
+        grid.status = core.NOT_STARTED;
+        resetButton.status = core.NOT_STARTED;
 
-        console.log(probe);
-        probe.nextProbe();
-        probe.setAutoDraw(true, 0.3);
-        grid.setAutoDraw(true);
-        resetButton.setAutoDraw(true);
+        if (firstStart) {
+            t = 0;
+            mainClock.reset(); // clock
+            frameN = -1;
+        }
         // test.setAutoDraw(true);
         // test.forEach((tt) => tt.setAutoDraw(true));
         // screenCoverAfterWrongSolution.setAutoDraw(true);
@@ -443,6 +465,9 @@ function mainRoutineBegin() {
 
 
 function mainRoutineEachFrame() {
+    // needed to bypass PsychoJS problem when visual elements calculate
+    // wrong positions in full screen mode
+    const TIME_BEFORE_START = 0.1;
     return async function() {
         //------Loop for each frame of Routine 'main'-------
         // get current time
@@ -450,7 +475,17 @@ function mainRoutineEachFrame() {
         frameN = frameN + 1;// number of completed frames (so 0 is the first frame)
         // update/draw components on each frame
 
-        if (!singleClick.isInitialized && t >= 0) {
+        if (grid.status === core.NOT_STARTED && t >= TIME_BEFORE_START) {
+            grid.setAutoDraw(true);
+            grid.status = core.STARTED;
+        }
+
+        if (resetButton.status === core.NOT_STARTED && t >= TIME_BEFORE_START) {
+            resetButton.setAutoDraw(true);
+            resetButton.status = core.STARTED;
+        }
+
+        if (!singleClick.isInitialized && t >= TIME_BEFORE_START) {
             singleClick.initialize();
         }
 
@@ -467,6 +502,11 @@ function mainRoutineEachFrame() {
         }
 
         if (katonaRules.isSolved()) {
+            flowScheduler.add(quitPsychoJS, '', true);
+            return Scheduler.Event.NEXT;
+        }
+
+        if (SHOW_PROBES && movesObserver.isImpasse(SHOW_PROBES)) {
             return Scheduler.Event.NEXT;
         }
 
@@ -479,9 +519,35 @@ function mainRoutineEachFrame() {
 function mainRoutineEnd() {
     return async function() {
         // the Routine "main" was not non-slip safe, so reset the non-slip timer
-        routineTimer.reset();
+        grid.status = core.NOT_STARTED;
+        resetButton.status = core.NOT_STARTED;
 
+        grid.setAutoDraw(false);
+        resetButton.setAutoDraw(false);
+
+        prepareImpasseRoutine();
         return Scheduler.Event.NEXT;
+    };
+}
+
+function probesDuringImpasse() {
+    impasseProbesClock.reset();
+    let t = 0;
+
+    probe.nextProbe();
+    return async () => {
+        t = impasseProbesClock.getTime();
+
+        if (!probe.isStarted) {
+            probe.setAutoDraw(true, t);
+        }
+
+        if (routineTimer.getTime() < 0) {
+            prepareReturnToMainRoutine();
+            return Scheduler.Event.NEXT;
+        }
+
+        return Scheduler.Event.FLIP_REPEAT;
     };
 }
 

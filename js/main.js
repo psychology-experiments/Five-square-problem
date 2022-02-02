@@ -453,8 +453,8 @@ let frameN;
 function mainRoutineBegin(firstStart) {
     return async function() {
         //------Prepare to start Routine 'trial'-------
-        grid.status = core.NOT_STARTED;
-        resetButton.status = core.NOT_STARTED;
+        grid.status = PsychoJS.Status.NOT_STARTED;
+        resetButton.status = PsychoJS.Status.NOT_STARTED;
 
         if (firstStart) {
             t = 0;
@@ -480,14 +480,14 @@ function mainRoutineEachFrame() {
         frameN = frameN + 1;// number of completed frames (so 0 is the first frame)
         // update/draw components on each frame
 
-        if (grid.status === core.NOT_STARTED && t >= TIME_BEFORE_START) {
+        if (grid.status === PsychoJS.Status.NOT_STARTED && t >= TIME_BEFORE_START) {
             grid.setAutoDraw(true);
-            grid.status = core.STARTED;
+            grid.status = PsychoJS.Status.STARTED;
         }
 
-        if (resetButton.status === core.NOT_STARTED && t >= TIME_BEFORE_START) {
+        if (resetButton.status === PsychoJS.Status.NOT_STARTED && t >= TIME_BEFORE_START) {
             resetButton.setAutoDraw(true);
-            resetButton.status = core.STARTED;
+            resetButton.status = PsychoJS.Status.STARTED;
         }
 
         if (!singleClick.isInitialized && t >= TIME_BEFORE_START) {
@@ -524,8 +524,8 @@ function mainRoutineEachFrame() {
 function mainRoutineEnd() {
     return async function() {
         // the Routine "main" was not non-slip safe, so reset the non-slip timer
-        grid.status = core.NOT_STARTED;
-        resetButton.status = core.NOT_STARTED;
+        grid.status = PsychoJS.Status.NOT_STARTED;
+        resetButton.status = PsychoJS.Status.NOT_STARTED;
 
         // TODO: check all states and make sure Katona is stopped during probe
         singleClick.stop();

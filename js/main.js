@@ -241,13 +241,13 @@ async function experimentInit() {
     // Initialize components for Routine "mainRoutine"
     mainClock = new util.Clock();
 
-    const w = 0.01;
-    const h = 0.09;
+    const gridUnitWidth = 0.01;
+    const gridUnitHeight = 0.09;
     const gridInfo = new Grid({
         startPoint: [-0.4, 0.47],
         gridSquares: 9,
-        gridUnitLength: h,
-        gridUnitWidth: w,
+        gridUnitLength: gridUnitHeight,
+        gridUnitWidth: gridUnitWidth,
     });
 
     grid = new VisualGrid({
@@ -257,12 +257,13 @@ async function experimentInit() {
         movableElementColor: 'black',
         movableElementsRelativeIndexes: MOVABLE_STICKS_INDEXES,
     });
+    const gridBoundingBox = grid.getBoundingBox();
 
     const wrongSolutionMessage = `Данное решение неверное.
     Пожалуйста, нажмите на кнопку:\n\n"Заново"`;
     screenCoverAfterWrongSolution = new ScreenCover({
         window: psychoJS.window,
-        boundingBoxOfSquares: grid.getBoundingBox(),
+        boundingBoxOfSquares: gridBoundingBox,
         coverColor: new util.Color('orange'),
         textMessage: wrongSolutionMessage,
         textColor: new util.Color('black'),
@@ -274,11 +275,15 @@ async function experimentInit() {
         buttonToCheck: 'left',
     });
 
+    const middleGridPosition = [
+        gridBoundingBox[1][0] + gridUnitHeight * 2,
+        (gridBoundingBox[1][1] + gridBoundingBox[2][1]) / 2,
+    ];
     resetButton = new visual.ButtonStim({
         win: psychoJS.window,
         text: 'Заново',
         fillColor: new util.Color('#011B56'),
-        pos: [0.75, 0.02],
+        pos: middleGridPosition,
         size: [0.185, 0.07],
         padding: 0,
         letterHeight: 0.05,

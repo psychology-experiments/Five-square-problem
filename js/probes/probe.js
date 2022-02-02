@@ -50,6 +50,7 @@ class BaseProbe {
     constructor(probeView, startTime) {
         this._probeView = probeView;
         this._startTime = startTime;
+        this._isStarted = false;
     }
 
     nextProbe() {
@@ -64,6 +65,10 @@ class BaseProbe {
         throw Error('Not Implemented');
     }
 
+    get isStarted() {
+        return this._isStarted;
+    }
+
     get position() {
         return this._probeView.position;
     }
@@ -74,11 +79,13 @@ class BaseProbe {
 
     setAutoDraw(toShow, t) {
         if (!toShow) {
+            this._isStarted = false;
             this._probeView.setAutoDraw(false);
             return;
         }
 
         if (t >= this._startTime) {
+            this._isStarted = true;
             this._probeView.setAutoDraw(toShow);
         }
     }

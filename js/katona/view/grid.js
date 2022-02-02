@@ -30,8 +30,9 @@ class GridElement extends visual.Rect {
         this.name = `[${name}]`;
         this._occupiedBy = null;
         this._occupiedByDefalut = null;
+        this._verticesPositions = null;
 
-        const shapeToCalculateContainsMethod = new visual.Rect({
+        this._trueShape = new visual.Rect({
             win,
             width: width * 4,
             height,
@@ -41,17 +42,18 @@ class GridElement extends visual.Rect {
             units,
             fillColor,
         });
-
-        // this._test = shapeToCalculateContainsMethod;
-        this._verticesPositions = this._getVerticesPositionPixels(
-            shapeToCalculateContainsMethod);
     }
 
-    // setAutoDraw(toShow) {
-    // if (this._test === undefined) return;
-    // console.log("CC", this._test)
-    // this._test.setAutoDraw(toShow);
-    // }
+    setAutoDraw(toShow) {
+        // Calculate positions AFTER window became FULL SCREEN
+        // otherwise PsychoJS calculate it wrong
+        if (this._verticesPositions === null && toShow) {
+            this._verticesPositions = this._getVerticesPositionPixels(
+                this._trueShape);
+        }
+
+        super.setAutoDraw(toShow);
+    }
 
     _getVerticesPositionPixels(visualElement) {
         const rawVertices = visualElement._getVertices_px();

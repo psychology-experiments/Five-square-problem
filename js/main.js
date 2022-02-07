@@ -139,6 +139,26 @@ if (DOWNLOAD_RESOURCES) {
         dictionary: expInfo,
         title: expName
     }));
+
+    // Protect experiment from start before all files were loaded
+    const waitResourceDownloadingID = setInterval(() => {
+        const okButton = document.getElementById('buttonOk');
+        if (okButton === null) return;
+
+
+        if (!okButton.disabled) {
+            okButton.disabled = true;
+            okButton.style.color = "#C3C3C3";
+        }
+
+        if (psychoJS.gui._allResourcesDownloaded) {
+            okButton.disabled = false;
+            okButton.style.color = "#454545";
+            clearInterval(waitResourceDownloadingID);
+        }
+
+    }, 100);
+
     const dialogCancelScheduler = new Scheduler(psychoJS);
     psychoJS.scheduleCondition(function() {
         return (psychoJS.gui.dialogComponent.button === 'OK');

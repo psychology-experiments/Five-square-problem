@@ -186,7 +186,6 @@ class InhibitionProbe extends BaseProbe {
             filter((v) => v[1][0] !== v[1][1]).
             map((v) => v[0]);
         this._probesGroups = [congruentProbes, incongruentProbes];
-        console.log(this._probesGroups);
     }
 
     nextProbe() {

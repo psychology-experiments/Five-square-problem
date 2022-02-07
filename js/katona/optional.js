@@ -84,12 +84,11 @@ class MovesTimeObserver {
     constructor() {
         this._lastMoveTime = null;
 
-        this._test = 0;
+        this._testClock = new util.Clock();
     }
 
     isImpasse(testProbe) {
-        if (testProbe) this._test += 1;
-        return testProbe && this._test < 3;
+        return testProbe && this._testClock.getTime() > 3;
     }
 }
 

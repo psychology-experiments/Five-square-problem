@@ -20,6 +20,8 @@ const { EVENT } = eventHandler;
 const DOWNLOAD_RESOURCES = true;
 const SHOW_PROBES = DOWNLOAD_RESOURCES && true;
 const IMPASSE_INTERRUPTION_TIME = 3;
+// TODO: make random or arbitrary choice of probes at experiment start
+const PROBE_TYPE = 'ShiftProbe';
 
 
 // store info about the experiment session:
@@ -108,6 +110,7 @@ const PROBES_DATA = {
 
 const PROBES_TO_DOWNLOAD = [];
 for (const probeName in PROBES_DATA) {
+    if (probeName !== PROBE_TYPE) continue;
     for (const stimulusFP of PROBES_DATA[probeName].probes) {
         PROBES_TO_DOWNLOAD.push({ name: stimulusFP, path: stimulusFP });
     }
@@ -295,11 +298,10 @@ async function experimentInit() {
 
     if (SHOW_PROBES) {
         // TODO: make random or arbitrary choice of probes at experiment start
-        const probeType = 'ShiftProbe';
         probe = createProbe({
-            probeType: probeType,
-            probes: PROBES_DATA[probeType].probes,
-            answers: PROBES_DATA[probeType].answers,
+            probeType: PROBE_TYPE,
+            probes: PROBES_DATA[PROBE_TYPE].probes,
+            answers: PROBES_DATA[PROBE_TYPE].answers,
             window: psychoJS.window,
             position: [0.0, 0.0],
             startTime: 0.1,
@@ -480,12 +482,14 @@ function mainRoutineEachFrame() {
         frameN = frameN + 1;// number of completed frames (so 0 is the first frame)
         // update/draw components on each frame
 
-        if (grid.status === PsychoJS.Status.NOT_STARTED && t >= TIME_BEFORE_START) {
+        if (grid.status === PsychoJS.Status.NOT_STARTED && t >=
+            TIME_BEFORE_START) {
             grid.setAutoDraw(true);
             grid.status = PsychoJS.Status.STARTED;
         }
 
-        if (resetButton.status === PsychoJS.Status.NOT_STARTED && t >= TIME_BEFORE_START) {
+        if (resetButton.status === PsychoJS.Status.NOT_STARTED && t >=
+            TIME_BEFORE_START) {
             resetButton.setAutoDraw(true);
             resetButton.status = PsychoJS.Status.STARTED;
         }

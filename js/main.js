@@ -7,6 +7,7 @@ import * as movement from './katona/presenter/logic/movement.js';
 import { Grid } from './katona/presenter/logic/grid.js';
 import { VisualGrid } from './katona/view/grid.js';
 import { ScreenCover, MovesTimeObserver } from './katona/optional.js';
+import { SingleSymbolKeyboard, AdditionalTrialData } from "./inputprocessing/inputprocessing.js";
 import { FiveSquareKatona } from './katona/katona.js';
 import { createProbe } from './probes/probe.js';
 
@@ -220,7 +221,6 @@ function prepareImpasseRoutine() {
     probe.prepareForNewStart();
 }
 
-
 async function updateInfo() {
     expInfo.date = util.MonotonicClock.getDateStr();  // add a simple timestamp
     expInfo.expName = expName;
@@ -249,6 +249,7 @@ let resetButton;
 let katonaRules;
 let screenCoverAfterWrongSolution;
 let probe;
+let probeKeyboard;
 let movesObserver;
 
 let test;
@@ -326,6 +327,11 @@ async function experimentInit() {
             position: [0.0, 0.0],
             startTime: 0.1,
         });
+
+        probeKeyboard = new SingleSymbolKeyboard({
+            psychoJS: psychoJS,
+            additionalTrialData: new AdditionalTrialData({})
+        })
     }
 
     movesObserver = new MovesTimeObserver();
@@ -562,15 +568,26 @@ function mainRoutineEnd() {
 }
 
 function probesDuringImpasse() {
-    impasseProbesClock.reset();
     let t = 0;
-
     probe.nextProbe();
+    impasseProbesClock.reset();
     return async () => {
         t = impasseProbesClock.getTime();
 
         if (!probe.isStarted) {
             probe.setAutoDraw(true, t);
+        }
+
+        if (!probeKeyboard.isInitialized && probe.isStarted) {
+            probeKeyboard.initialize({ keysToWatch: ["left", "right"] })
+        }
+
+        if (probeKeyboard.isSendInput()) {
+            probeKeyboard.stop();
+            probe.stop();
+            // go to next probe if impasse intervention is not finished
+            flowScheduler.add(probesDuringImpasse());
+            return Scheduler.Event.NEXT;
         }
 
         if (routineTimer.getTime() < 0) {

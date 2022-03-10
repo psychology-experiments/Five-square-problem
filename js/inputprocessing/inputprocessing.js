@@ -97,6 +97,8 @@ export class SingleSymbolKeyboard extends UserInputProcessor {
     }
 
     isSendInput() {
+        if (!this._isInitialized) return;
+
         let pressedKey = this._keyboard.getKeys({
             keyList: this._keyList, waitRelease: false,
         });

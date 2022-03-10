@@ -131,7 +131,7 @@ export class SingleSymbolKeyboard extends UserInputProcessor {
 }
 
 
-class AdditionalTrialData {
+export class AdditionalTrialData {
     constructor(data) {
         this._data = Object.entries(data);
     }

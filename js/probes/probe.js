@@ -77,6 +77,11 @@ class BaseProbe {
         this._probeView.position = coordinates;
     }
 
+    stop() {
+        this._isStarted = false;
+        this.setAutoDraw(false);
+    }
+
     setAutoDraw(toShow, t) {
         if (!toShow) {
             this._isStarted = false;

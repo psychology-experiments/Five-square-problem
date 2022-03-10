@@ -88,7 +88,11 @@ class MovesTimeObserver {
     }
 
     isImpasse(testProbe) {
-        return testProbe && this._testClock.getTime() > 3;
+        if (this._testClock.getTime() > 30) {
+            this._testClock.reset();
+            return testProbe;
+        }
+        return false;
     }
 }
 

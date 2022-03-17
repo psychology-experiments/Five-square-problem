@@ -52,3 +52,28 @@ export function mean(x) {
     const length = x.length;
     return x.reduce(add, 0) / length;
 }
+
+/**
+ * Calculate sample standard deviation (n - 1)  of an Array
+ *
+ * @function
+ * @public
+ * @param {Array<Number>} x - array with numbers
+ * @param {Number} [xMean=null] - mean of an Array
+ * @return Number
+ */
+export function sd(x, xMean) {
+    if (!(x instanceof Array)) {
+        throw new Error(`Mean defined only for Array, but get ${typeof x}`);
+    }
+
+    const xMeanValue = xMean !== null ? xMean : mean(x);
+
+    const subtractMeanAndPow = x => Math.pow(x - xMeanValue, 2);
+    const add = (x, y) => x + y;
+    const sampleLength = x.length - 1;
+    return Math.pow(
+        x.map(subtractMeanAndPow).reduce(add) / sampleLength,
+        0.5
+    );
+}

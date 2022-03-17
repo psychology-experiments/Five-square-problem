@@ -34,3 +34,21 @@ export function * cycle(iterable) {
         }
     }
 }
+
+/**
+ * Calculate mean of an Array
+ *
+ * @function
+ * @public
+ * @param {Array<Number>} x - array with numbers
+ * @return Number
+ */
+export function mean(x) {
+    if (!(x instanceof Array)) {
+        throw new Error(`Mean defined only for Array, but get ${typeof x}`);
+    }
+
+    const add = (x, y) => x + y;
+    const length = x.length;
+    return x.reduce(add, 0) / length;
+}

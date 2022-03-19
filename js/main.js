@@ -6,7 +6,7 @@ import * as movement from './katona/presenter/logic/movement.js';
 
 import { Grid } from './katona/presenter/logic/grid.js';
 import { VisualGrid } from './katona/view/grid.js';
-import { ScreenCover, MovesTimeObserver } from './katona/optional.js';
+import { MovesTimeObserver } from './katona/optional.js';
 import {
     SingleSymbolKeyboard,
     AdditionalTrialData
@@ -250,12 +250,9 @@ let grid;
 let singleClick;
 let resetButton;
 let katonaRules;
-let screenCoverAfterWrongSolution;
 let probe;
 let probeKeyboard;
 let movesObserver;
-
-let test;
 
 async function experimentInit() {
     // Create some handy timers
@@ -285,17 +282,6 @@ async function experimentInit() {
         movableElementsRelativeIndexes: MOVABLE_STICKS_INDEXES,
     });
     const gridBoundingBox = grid.getBoundingBox();
-
-    const wrongSolutionMessage = `Данное решение неверное.
-    Пожалуйста, нажмите на кнопку:\n\n"Заново"`;
-    screenCoverAfterWrongSolution = new ScreenCover({
-        window: psychoJS.window,
-        boundingBoxOfSquares: gridBoundingBox,
-        coverColor: new util.Color('orange'),
-        textMessage: wrongSolutionMessage,
-        textColor: new util.Color('black'),
-        secondsToCover: 1,
-    });
 
     singleClick = new movement.SingleClickMouse({
         window: psychoJS.window,
@@ -339,12 +325,6 @@ async function experimentInit() {
 
     movesObserver = new MovesTimeObserver({});
 
-    // test = new visual.ImageStim({
-    //     win: psychoJS.window,
-    //     image: 'SwitchProbe 1.png',
-    //     pos: [0, 0],
-    // });
-
     return Scheduler.Event.NEXT;
 }
 
@@ -359,7 +339,6 @@ async function eventHandlersInit() {
         eventHandler.removeAllExpiringHandlers();
         grid.returnToDefault();
         katonaRules.returnToDefault();
-        screenCoverAfterWrongSolution.reset();
         registerChoosingHandler();
     };
     const isResetButtonClick = () => {
@@ -367,18 +346,6 @@ async function eventHandlersInit() {
 
         // TODO: обсудить как считать время хода, если человек нажал ЗАНОВО
         eventHandler.emitEvent(EVENT.RESET, singleClick);
-    };
-    const wrongSolutionHandler = () => {
-        screenCoverAfterWrongSolution.setAutoDraw(true);
-
-        const checkScreenCoverWork = setInterval(() => {
-            if (screenCoverAfterWrongSolution.isCoveredScreen()) {
-                grid.setAutoDraw(false);
-                clearInterval(checkScreenCoverWork);
-            }
-        }, 300);
-
-        eventHandler.removeExpiredHandlers(EVENT.CHOSEN);
     };
 
     const registerChoosingHandler = () => {
@@ -476,11 +443,6 @@ async function eventHandlersInit() {
     eventHandler.registerHandler({
         event: EVENT.RESET,
         handler: resetToDefaultState,
-    });
-
-    eventHandler.registerHandler({
-        event: EVENT.WRONG_SOLUTION,
-        handler: wrongSolutionHandler,
     });
 
     registerChoosingHandler();

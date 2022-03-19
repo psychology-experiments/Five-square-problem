@@ -365,6 +365,7 @@ async function eventHandlersInit() {
     const isResetButtonClick = () => {
         if (!resetButton.isClicked) return;
 
+        // TODO: обсудить как считать время хода, если человек нажал ЗАНОВО
         eventHandler.emitEvent(EVENT.RESET, singleClick);
     };
     const wrongSolutionHandler = () => {

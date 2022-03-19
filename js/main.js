@@ -7,7 +7,10 @@ import * as movement from './katona/presenter/logic/movement.js';
 import { Grid } from './katona/presenter/logic/grid.js';
 import { VisualGrid } from './katona/view/grid.js';
 import { ScreenCover, MovesTimeObserver } from './katona/optional.js';
-import { SingleSymbolKeyboard, AdditionalTrialData } from "./inputprocessing/inputprocessing.js";
+import {
+    SingleSymbolKeyboard,
+    AdditionalTrialData
+} from './inputprocessing/inputprocessing.js';
 import { FiveSquareKatona } from './katona/katona.js';
 import { createProbe } from './probes/probe.js';
 
@@ -149,12 +152,12 @@ if (DOWNLOAD_RESOURCES) {
 
         if (!okButton.disabled) {
             okButton.disabled = true;
-            okButton.style.color = "#C3C3C3";
+            okButton.style.color = '#C3C3C3';
         }
 
         if (psychoJS.gui._allResourcesDownloaded) {
             okButton.disabled = false;
-            okButton.style.color = "#454545";
+            okButton.style.color = '#454545';
             clearInterval(waitResourceDownloadingID);
         }
 
@@ -331,10 +334,10 @@ async function experimentInit() {
         probeKeyboard = new SingleSymbolKeyboard({
             psychoJS: psychoJS,
             additionalTrialData: new AdditionalTrialData({})
-        })
+        });
     }
 
-    movesObserver = new MovesTimeObserver();
+    movesObserver = new MovesTimeObserver({});
 
     // test = new visual.ImageStim({
     //     win: psychoJS.window,
@@ -412,7 +415,10 @@ async function eventHandlersInit() {
 
         eventHandler.emitEvent(
             EVENT.CHOSEN,
-            { chosenElement: chosenElement }
+            {
+                chosenElement: chosenElement,
+                mouseData: clicker.getData()
+            }
         );
     });
 
@@ -431,7 +437,9 @@ async function eventHandlersInit() {
             chosenElement.wasTakenFrom,
             placedTo.name);
 
-        eventHandler.emitEvent(EVENT.PLACED, {});
+        eventHandler.emitEvent(EVENT.PLACED, {
+            mouseData: singleClick.getData()
+        });
 
         if (katonaRules.isMaxMovesMade()) {
             eventHandler.emitEvent(EVENT.WRONG_SOLUTION, {});
@@ -443,6 +451,20 @@ async function eventHandlersInit() {
     eventHandler.registerHandler({
         event: EVENT.CLICK,
         handler: handleNewClick,
+    });
+
+    eventHandler.registerHandler({
+        event: EVENT.CHOSEN,
+        handler: (data) => {
+            movesObserver.addStartTime(data.mouseData.RT);
+        }
+    });
+
+    eventHandler.registerHandler({
+        event: EVENT.PLACED,
+        handler: (data) => {
+            movesObserver.addEndTime(data.mouseData.RT);
+        }
     });
 
     eventHandler.registerHandler({
@@ -487,6 +509,7 @@ function mainRoutineBegin(firstStart) {
         if (firstStart) {
             t = 0;
             mainClock.reset(); // clock
+            movesObserver.prepareToStart();
             frameN = -1;
         }
         // test.setAutoDraw(true);
@@ -541,7 +564,7 @@ function mainRoutineEachFrame() {
             return Scheduler.Event.NEXT;
         }
 
-        if (SHOW_PROBES && movesObserver.isImpasse(SHOW_PROBES)) {
+        if (SHOW_PROBES && movesObserver.isImpasse()) {
             return Scheduler.Event.NEXT;
         }
 
@@ -579,7 +602,7 @@ function probesDuringImpasse() {
         }
 
         if (!probeKeyboard.isInitialized && probe.isStarted) {
-            probeKeyboard.initialize({ keysToWatch: ["left", "right"] })
+            probeKeyboard.initialize({ keysToWatch: ['left', 'right'] });
         }
 
         if (probeKeyboard.isSendInput()) {

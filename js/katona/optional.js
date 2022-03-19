@@ -1,5 +1,7 @@
 import { core, util, visual } from '../../lib/psychojs-2021.2.3.developer.js';
 
+import * as general from './general.js';
+
 
 class ScreenCover {
     constructor({
@@ -81,17 +83,67 @@ class ScreenCover {
 
 
 class MovesTimeObserver {
-    constructor() {
-        this._lastMoveTime = null;
+    constructor({
+        minimalMovesBeforeImpasse = 3,
+        minimalThresholdTime = 5,
+    }) {
+        this._movesClock = new util.Clock();
+        this._lastMoveTime = 0;
+        this._thresholdTime = null;
+        this._movesTime = [];
+        this._moveAfterImpasse = false;
 
-        this._testClock = new util.Clock();
+        this._minimalMovesBeforeImpasse = minimalMovesBeforeImpasse;
+        this._minimalThresholdTime = minimalThresholdTime;
     }
 
-    isImpasse(testProbe) {
-        if (this._testClock.getTime() > 30) {
-            this._testClock.reset();
-            return testProbe;
+    prepareToStart() {
+        this._movesClock.reset();
+    }
+
+    addStartTime(RT) {
+        if (this._moveAfterImpasse) {
+            // TODO: Обсудить добавлять ли после тупика время хода, если считать
+            // от момента, когда вернулись к решению, а не от предыдущего хода
+            this._moveAfterImpasse = false;
         }
+
+        this._movesTime.push(RT + this._lastMoveTime);
+        this._lastMoveTime = null;
+
+        if (this._movesTime.length >= this._minimalMovesBeforeImpasse) {
+            const meanTime = general.mean(this._movesTime);
+            const sdTime = general.sd(this._movesTime, meanTime);
+            const thresholdTime = meanTime + 2 * sdTime;
+            this._thresholdTime = thresholdTime > this._minimalThresholdTime
+                ? thresholdTime
+                : this._minimalThresholdTime;
+        }
+
+        this._movesClock.reset();
+    }
+
+    addEndTime(RT) {
+        console.assert(this._lastMoveTime === null,
+            {
+                where: 'MovesTimeObserver',
+                problem: 'Время конца хода не было сброшено',
+                data: this._lastMoveTime
+            });
+
+        this._lastMoveTime = RT;
+    }
+
+    isImpasse() {
+        if (this._thresholdTime === null) return false;
+
+        if (this._moveAfterImpasse) return false;
+
+        if (this._movesClock.getTime() >= this._thresholdTime) {
+            this._moveAfterImpasse = true;
+            return true;
+        }
+
         return false;
     }
 }

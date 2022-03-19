@@ -54,10 +54,6 @@ export class FiveSquareKatona {
         }
     }
 
-    isMaxMovesMade() {
-        return this._movesMade === this._maxMoves;
-    }
-
     isSolved() {
         if (this._movesMade !== this._maxMoves) return false;
 

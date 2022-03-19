@@ -408,10 +408,6 @@ async function eventHandlersInit() {
         eventHandler.emitEvent(EVENT.PLACED, {
             mouseData: singleClick.getData()
         });
-
-        if (katonaRules.isMaxMovesMade()) {
-            eventHandler.emitEvent(EVENT.WRONG_SOLUTION, {});
-        }
     };
 
 

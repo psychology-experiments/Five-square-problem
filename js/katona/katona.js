@@ -55,7 +55,7 @@ export class FiveSquareKatona {
     }
 
     isSolved() {
-        if (this._movesMade !== this._maxMoves) return false;
+        if (this._movesMade < this._maxMoves) return false;
 
         return this._answerChecker.isSolved();
     }
@@ -70,7 +70,11 @@ export class FiveSquareKatona {
 class AnswerChecker {
     constructor(solutions) {
         this._correctSolutions = solutions;
+        this._solutionName = null;
+
         this._currentSolutionName = null;
+
+        this._moves = new Map();
 
         this._chosenElements = [];
         this._placedTo = [];
@@ -97,6 +101,10 @@ class AnswerChecker {
             this._currentSolutionName === null;
     }
 
+    _addMove(chosenElement, placedTo) {
+        this._moves.set(chosenElement, placedTo);
+    }
+
     addMove(chosenElement, placedTo) {
         if (this._canIdentifySolutionName()) {
             this._identifySolutionName(chosenElement, placedTo);
@@ -104,6 +112,27 @@ class AnswerChecker {
 
         this._chosenElements.push(chosenElement);
         this._placedTo.push(placedTo);
+    }
+
+    _isCorrectSolution(solutionInfo) {
+        const solutionPositions = solutionInfo.positions;
+        for (const element of solutionInfo) {
+            const placedTo = this._moves.get(element);
+
+            if (!solutionPositions.includes(placedTo)) return false;
+        }
+        return true;
+
+    }
+
+    _isSolved() {
+        for (const {name, info} of this._correctSolutions.entries()) {
+            if (this._isCorrectSolution(info)) {
+                this._solutionName = name;
+                return true;
+            }
+        }
+        return false;
     }
 
     isSolved() {

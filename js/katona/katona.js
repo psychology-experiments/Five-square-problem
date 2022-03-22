@@ -40,7 +40,6 @@ function _convertSolutionRelativeIndexToAbsolute(mapper, solutions) {
 export class FiveSquareKatona {
     constructor({ indexMapper }) {
         this._movesMade = 0;
-        this._maxMoves = 3;
 
         const solutionInAbsoluteIndex = _convertSolutionRelativeIndexToAbsolute(
             indexMapper, FIVE_SQUARE_KATONA_SOLUTIONS);
@@ -55,8 +54,6 @@ export class FiveSquareKatona {
     }
 
     isSolved() {
-        if (this._movesMade < this._maxMoves) return false;
-
         return this._answerChecker.isSolved();
     }
 
@@ -71,52 +68,18 @@ class AnswerChecker {
     constructor(solutions) {
         this._correctSolutions = solutions;
         this._solutionName = null;
-
-        this._currentSolutionName = null;
-
+        this._solved = false;
         this._moves = new Map();
-
-        this._chosenElements = [];
-        this._placedTo = [];
-    }
-
-    _identifySolutionName(chosenElement, placedTo) {
-        for (const solutionName in this._correctSolutions) {
-            const {
-                elements,
-                positions
-            } = this._correctSolutions[solutionName];
-            const isCorrectElement = elements.includes(chosenElement);
-            const isCorrectPosition = positions.includes(placedTo);
-
-            if (isCorrectElement && isCorrectPosition) {
-                this._currentSolutionName = solutionName;
-                break;
-            }
-        }
-    }
-
-    _canIdentifySolutionName() {
-        return this._chosenElements.length === 0 &&
-            this._currentSolutionName === null;
-    }
-
-    _addMove(chosenElement, placedTo) {
-        this._moves.set(chosenElement, placedTo);
     }
 
     addMove(chosenElement, placedTo) {
-        if (this._canIdentifySolutionName()) {
-            this._identifySolutionName(chosenElement, placedTo);
-        }
-
-        this._chosenElements.push(chosenElement);
-        this._placedTo.push(placedTo);
+        this._moves.set(chosenElement, placedTo);
+        this._isSolved();
     }
 
     _isCorrectSolution(solutionInfo) {
         const solutionPositions = solutionInfo.positions;
-        for (const element of solutionInfo) {
+        for (const element of solutionInfo.elements) {
             const placedTo = this._moves.get(element);
 
             if (!solutionPositions.includes(placedTo)) return false;
@@ -126,33 +89,20 @@ class AnswerChecker {
     }
 
     _isSolved() {
-        for (const {name, info} of this._correctSolutions.entries()) {
+        const solutions = Object.entries(this._correctSolutions);
+        for (const [name, info] of solutions) {
             if (this._isCorrectSolution(info)) {
                 this._solutionName = name;
-                return true;
+                this._solved = true;
             }
         }
-        return false;
     }
 
     isSolved() {
-        if (this._currentSolutionName === null) return false;
-
-        const solutionInfo = this._correctSolutions[this._currentSolutionName];
-        const allElementsTaken = this._chosenElements.every((e) => {
-            return solutionInfo.elements.includes(e);
-        });
-
-        const allPositionsUsed = this._placedTo.every((p) => {
-            return solutionInfo.positions.includes(p);
-        });
-
-        return allElementsTaken && allPositionsUsed;
+        return this._solved;
     }
 
     reset() {
-        this._currentSolutionName = null;
-        this._chosenElements = [];
-        this._placedTo = [];
+        this._moves.clear();
     }
 }

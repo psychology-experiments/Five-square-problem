@@ -43,7 +43,10 @@ export class FiveSquareKatona {
 
         const solutionInAbsoluteIndex = _convertSolutionRelativeIndexToAbsolute(
             indexMapper, FIVE_SQUARE_KATONA_SOLUTIONS);
-        this._answerChecker = new AnswerChecker(solutionInAbsoluteIndex);
+        this._answerChecker = new AnswerChecker(
+            solutionInAbsoluteIndex,
+            3
+        );
     }
 
     countMove(chosenElementName, wasTakenFrom, placedTo) {
@@ -65,15 +68,20 @@ export class FiveSquareKatona {
 
 
 class AnswerChecker {
-    constructor(solutions) {
+    constructor(solutions, solutionMoves) {
         this._correctSolutions = solutions;
         this._solutionName = null;
+        this._solutionMoves = solutionMoves;
         this._solved = false;
         this._moves = new Map();
     }
 
     addMove(chosenElement, placedTo) {
-        this._moves.set(chosenElement, placedTo);
+        if (chosenElement === placedTo) {
+            this._moves.delete(chosenElement);
+        } else {
+            this._moves.set(chosenElement, placedTo);
+        }
         this._isSolved();
     }
 
@@ -89,6 +97,8 @@ class AnswerChecker {
     }
 
     _isSolved() {
+        if (this._moves.size !== this._solutionMoves) return;
+
         const solutions = Object.entries(this._correctSolutions);
         for (const [name, info] of solutions) {
             if (this._isCorrectSolution(info)) {

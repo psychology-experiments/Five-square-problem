@@ -23,7 +23,8 @@ const { EVENT } = eventHandler;
 // Development constants
 const DOWNLOAD_RESOURCES = true;
 const SHOW_PROBES = DOWNLOAD_RESOURCES && true;
-const IMPASSE_INTERRUPTION_TIME = 3;
+// TODO: определить длительность прерывания
+const IMPASSE_INTERRUPTION_TIME = 10;
 // TODO: make random or arbitrary choice of probes at experiment start
 const PROBE_TYPE = 'ShiftProbe';
 

@@ -16,14 +16,14 @@ function checkProbeSettings(probes, answers) {
     const uniqueProbesQty = new Set(probes).size;
 
     if (probesQty === 0) {
-        throw Error('Probe without stimuli is prohibited');
+        throw new Error('Probe without stimuli is prohibited');
     }
 
     if (probesQty !== uniqueProbesQty) {
         const notUniqueProbesErrorMessage = `
             Every probe must be unique.
             But there are ${probesQty - uniqueProbesQty} repeats in probes`;
-        throw Error(notUniqueProbesErrorMessage);
+        throw new Error(notUniqueProbesErrorMessage);
     }
 
     if (answers === null) return;
@@ -33,7 +33,7 @@ function checkProbeSettings(probes, answers) {
         const notEnoughAnswersErrorMessage = `
             Every probe must have the answer.
             But there are ${probesQty} probes and ${answersQty} answers`;
-        throw Error(notEnoughAnswersErrorMessage);
+        throw new Error(notEnoughAnswersErrorMessage);
     }
 }
 
@@ -54,15 +54,15 @@ class BaseProbe {
     }
 
     nextProbe() {
-        throw Error('Not Implemented');
+        throw new Error('Not Implemented');
     }
 
     getPressCorrectness(pressedKeyName) {
-        throw Error('Not Implemented');
+        throw new Error('Not Implemented');
     }
 
     prepareForNewStart() {
-        throw Error('Not Implemented');
+        throw new Error('Not Implemented');
     }
 
     get isStarted() {

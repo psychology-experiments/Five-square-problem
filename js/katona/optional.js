@@ -5,13 +5,13 @@ import * as general from './general.js';
 
 class ScreenCover {
     constructor({
-        window,
-        boundingBoxOfSquares,
-        coverColor,
-        textMessage,
-        textColor,
-        secondsToCover,
-    }) {
+                    window,
+                    boundingBoxOfSquares,
+                    coverColor,
+                    textMessage,
+                    textColor,
+                    secondsToCover,
+                }) {
         const [width, height, position] = this._findDimensionsParameters(
             boundingBoxOfSquares
         );
@@ -148,5 +148,17 @@ class MovesTimeObserver {
     }
 }
 
+class DataSaver {
+    constructor({ psychoJS }) {
+        this._saveEngine = psychoJS.experiment;
+        this._rowData = new Map();
+    }
 
-export { ScreenCover, MovesTimeObserver };
+    _saveAttempt(attemptData) {
+    }
+
+    saveData({ taskData }) {
+    }
+}
+
+export { DataSaver, ScreenCover, MovesTimeObserver };

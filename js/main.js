@@ -6,7 +6,7 @@ import * as movement from './katona/presenter/logic/movement.js';
 
 import { Grid } from './katona/presenter/logic/grid.js';
 import { VisualGrid } from './katona/view/grid.js';
-import { MovesTimeObserver } from './katona/optional.js';
+import { DataSaver, MovesTimeObserver } from './katona/optional.js';
 import {
     SingleSymbolKeyboard,
     AdditionalTrialData
@@ -24,7 +24,8 @@ const { EVENT } = eventHandler;
 const DOWNLOAD_RESOURCES = true;
 const SHOW_PROBES = DOWNLOAD_RESOURCES && true;
 // TODO: определить длительность прерывания
-const IMPASSE_INTERRUPTION_TIME = 10;
+const IMPASSE_INTERRUPTION_TIME = 15;
+const MINIMAL_THRESHOLD_TIME = 15;
 // TODO: make random or arbitrary choice of probes at experiment start
 const PROBE_TYPE = 'ShiftProbe';
 
@@ -247,6 +248,7 @@ let globalClock;
 let impasseProbesClock;
 let routineTimer;
 let grid;
+let dataSaver;
 
 let singleClick;
 let resetButton;
@@ -304,7 +306,10 @@ async function experimentInit() {
     });
 
     katonaRules = new FiveSquareKatona(
-        { indexMapper: grid.getRelativeIdxToAbsoluteMapper() }
+        {
+            indexMapperFunction: grid.getRelativeIdxToAbsoluteMapper(),
+            movableElementsRelativeIndexes: MOVABLE_STICKS_INDEXES,
+        }
     );
 
     if (SHOW_PROBES) {
@@ -324,7 +329,10 @@ async function experimentInit() {
         });
     }
 
-    movesObserver = new MovesTimeObserver({});
+    movesObserver = new MovesTimeObserver({
+        minimalThresholdTime: MINIMAL_THRESHOLD_TIME
+    });
+    dataSaver = new DataSaver({ psychoJS });
 
     return Scheduler.Event.NEXT;
 }
@@ -345,7 +353,7 @@ async function eventHandlersInit() {
     const isResetButtonClick = () => {
         if (!resetButton.isClicked) return;
 
-        // TODO: обсудить как считать время хода, если человек нажал ЗАНОВО
+        // TODO: обсудить как считать время хода, если человек нажал ЗАНОВО (во время зонда не решал)!
         eventHandler.emitEvent(EVENT.RESET, singleClick);
     };
 
@@ -443,6 +451,17 @@ async function eventHandlersInit() {
     });
 
     registerChoosingHandler();
+
+    const eventsToSave = [
+        EVENT.CHOSEN,
+        EVENT.PLACED,
+        EVENT.RESET,
+    ]
+
+    eventsToSave.forEach((event) => eventHandler.registerHandler({
+        event: event,
+        handler: (data) => console.log(event, data, mainClock, mainClock.getTime(), Object.keys(EVENT)[event])
+    }))
 
     // eventHandler.registerHandler({
     //     event: EVENT.CLICK,

@@ -114,7 +114,7 @@ export class SingleSymbolKeyboard extends UserInputProcessor {
 
     getData() {
         const inputData = {
-            keyName: this._keyName, rt: this._rt,
+            keyName: this._keyName, RT: this._rt,
         };
 
         return this._additionalTrialData.addData(inputData);

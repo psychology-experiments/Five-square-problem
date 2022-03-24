@@ -466,6 +466,7 @@ async function eventHandlersInit() {
         EVENT.PLACED,
         EVENT.RESET,
         EVENT.PROBE_ANSWER,
+        EVENT.IMPASSE,
     ]
 
     eventsToSave.forEach((event) => eventHandler.registerHandler({
@@ -559,6 +560,7 @@ function mainRoutineEachFrame() {
         }
 
         if (SHOW_PROBES && movesObserver.isImpasse()) {
+            eventHandler.emitEvent(EVENT.IMPASSE, {})
             return Scheduler.Event.NEXT;
         }
 

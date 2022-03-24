@@ -15,8 +15,13 @@ const FIVE_SQUARE_KATONA_SOLUTIONS = {
         'elements': [[1, 0], [2, 0], [2, 1]],
         'positions': [[4, 0], [5, 0], [4, 1]]
     },
+
 };
 
+
+function _relativeIndexToAbsoluteFormatter(mapper) {
+    return (index) => `[${mapper(index)}]`;
+}
 
 function _convertSolutionRelativeIndexToAbsolute(mapper, solutions) {
     const absoluteIndexSolutions = {};
@@ -27,9 +32,7 @@ function _convertSolutionRelativeIndexToAbsolute(mapper, solutions) {
         absoluteIndexSolutions[solutionName] = convertedSolutions;
 
         for (const [solutionPart, solutionRelativeIndexes] of solutionNameInfo) {
-            convertedSolutions[solutionPart] = solutionRelativeIndexes.map(
-                (idx) => `[${mapper(idx)}]`
-            );
+            convertedSolutions[solutionPart] = solutionRelativeIndexes.map(mapper);
         }
     }
 
@@ -38,21 +41,24 @@ function _convertSolutionRelativeIndexToAbsolute(mapper, solutions) {
 
 
 export class FiveSquareKatona {
-    constructor({ indexMapper }) {
+    constructor({ indexMapperFunction, movableElementsRelativeIndexes }) {
         this._movesMade = 0;
 
+        const indexMapper = _relativeIndexToAbsoluteFormatter(indexMapperFunction);
         const solutionInAbsoluteIndex = _convertSolutionRelativeIndexToAbsolute(
             indexMapper, FIVE_SQUARE_KATONA_SOLUTIONS);
+        const movableElementsAbsouluteIndexes = movableElementsRelativeIndexes.map(indexMapper);
         this._answerChecker = new AnswerChecker(
             solutionInAbsoluteIndex,
-            3
+            3,
+            movableElementsAbsouluteIndexes,
         );
     }
 
     countMove(chosenElementName, wasTakenFrom, placedTo) {
         if (wasTakenFrom !== placedTo) {
             this._movesMade += 1;
-            this._answerChecker.addMove(chosenElementName, placedTo);
+            this._answerChecker.addMove(wasTakenFrom, placedTo);
         }
     }
 
@@ -68,36 +74,50 @@ export class FiveSquareKatona {
 
 
 class AnswerChecker {
-    constructor(solutions, solutionMoves) {
+    constructor(solutions, solutionMoves, movableElementsIndexes) {
         this._correctSolutions = solutions;
+        this._defaultPositions = new Set(movableElementsIndexes);
+
         this._solutionName = null;
-        this._solutionMoves = solutionMoves;
         this._solved = false;
-        this._moves = new Map();
+        this._movesToSolve = solutionMoves;
+
+        this._taken = new Set();
+        this._placed = new Set();
     }
 
-    addMove(chosenElement, placedTo) {
-        if (chosenElement === placedTo) {
-            this._moves.delete(chosenElement);
-        } else {
-            this._moves.set(chosenElement, placedTo);
+    addMove(takenFrom, placedTo) {
+        // if element is placed then this position is not free
+        this._taken.delete(placedTo);
+        // if element is taken then this position is not occupied
+        this._placed.delete(takenFrom);
+
+        // only elements taken from default position are free
+        if (this._defaultPositions.has(takenFrom)) {
+            this._taken.add(takenFrom);
         }
+
+        // only elements placed outside position must be traced
+        if (!this._defaultPositions.has(placedTo)) {
+            this._placed.add(placedTo);
+        }
+
         this._isSolved();
     }
 
     _isCorrectSolution(solutionInfo) {
-        const solutionPositions = solutionInfo.positions;
-        for (const element of solutionInfo.elements) {
-            const placedTo = this._moves.get(element);
+        const takenCorrectly = solutionInfo.elements.every((taken) => this._taken.has(taken));
+        const placedCorrectly = solutionInfo.positions.every((placed) => this._placed.has(placed));
 
-            if (!solutionPositions.includes(placedTo)) return false;
-        }
-        return true;
+        return takenCorrectly && placedCorrectly;
+    }
 
+    _isSolutionImpossible() {
+        return this._taken.size !== this._movesToSolve || this._placed.size !== this._movesToSolve;
     }
 
     _isSolved() {
-        if (this._moves.size !== this._solutionMoves) return;
+        if (this._isSolutionImpossible()) return;
 
         const solutions = Object.entries(this._correctSolutions);
         for (const [name, info] of solutions) {
@@ -113,6 +133,7 @@ class AnswerChecker {
     }
 
     reset() {
-        this._moves.clear();
+        this._taken.clear();
+        this._placed.clear();
     }
 }

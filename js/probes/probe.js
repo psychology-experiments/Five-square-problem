@@ -57,6 +57,10 @@ class BaseProbe {
         throw new Error('Not Implemented');
     }
 
+    getProbeName() {
+        throw new Error('Not Implemented');
+    }
+
     getPressCorrectness(pressedKeyName) {
         throw new Error('Not Implemented');
     }
@@ -113,6 +117,10 @@ class UpdateProbe extends BaseProbe {
         this._probeView.setNextProbe(this._currentProbeIndex);
     }
 
+    getProbeName() {
+        return this._probes[this._currentProbeIndex].slice(-5, -4);
+    }
+
     getPressCorrectness(pressedKeyName) {
         if (this._previousProbeIndex === null) return true;
 
@@ -162,6 +170,10 @@ class ShiftProbe extends BaseProbe {
 
     }
 
+    getProbeName() {
+        return this._probes[this._currentProbeIndex].slice(-5, -4);
+    }
+
     getPressCorrectness(pressedKeyName) {
         return this._answers[this._currentProbeIndex] === pressedKeyName;
     }
@@ -201,6 +213,10 @@ class InhibitionProbe extends BaseProbe {
         this._currentProbeIndex = groupStimuli[randomIndex];
         this._probeView.setNextProbe(this._currentProbeIndex);
 
+    }
+
+    getProbeName() {
+        return this._probes[this._currentProbeIndex].slice(-6, -4);
     }
 
     getPressCorrectness(pressedKeyName) {

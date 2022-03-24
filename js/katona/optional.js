@@ -5,13 +5,13 @@ import * as general from './general.js';
 
 class ScreenCover {
     constructor({
-                    window,
-                    boundingBoxOfSquares,
-                    coverColor,
-                    textMessage,
-                    textColor,
-                    secondsToCover,
-                }) {
+        window,
+        boundingBoxOfSquares,
+        coverColor,
+        textMessage,
+        textColor,
+        secondsToCover,
+    }) {
         const [width, height, position] = this._findDimensionsParameters(
             boundingBoxOfSquares
         );
@@ -151,13 +151,48 @@ class MovesTimeObserver {
 class DataSaver {
     constructor({ psychoJS }) {
         this._saveEngine = psychoJS.experiment;
-        this._rowData = new Map();
+
+        this._katonaEvents = new Set(["CHOSEN", "PLACED", "RESET"]);
+
+        // setting up order of columns
+        this._saveEngine._currentTrialData = {
+            stage: "",
+            element: "",
+            takenFrom: "",
+            placedTo: "",
+            takeRT: "",
+            placeRT: "",
+            resetRT: "",
+            timeSolving: "",
+            probeType: "",
+            probeName: "",
+            probeRT: "",
+            keyPressed: "",
+            isCorrect: "",
+            timeFromStart: "",
+        }
+
     }
 
-    _saveAttempt(attemptData) {
+    _addRowData(event, rowData) {
+        const stage = this._katonaEvents.has(event) ? "Katona" : "Probe";
+        this._saveEngine.addData("stage", stage);
+        const columnsData = Object.entries(rowData)
+        for (const [columnName, columnValue] of columnsData) {
+            this._saveEngine.addData(columnName, columnValue);
+        }
     }
 
-    saveData({ taskData }) {
+    _saveRow() {
+        this._saveEngine.nextEntry();
+    }
+
+    saveData({ event, eventData }) {
+        this._addRowData(event, eventData);
+
+        if (event !== 'CHOSEN') {
+            this._saveRow(event);
+        }
     }
 }
 

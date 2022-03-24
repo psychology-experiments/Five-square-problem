@@ -189,12 +189,12 @@ flowScheduler.add(mainRoutineEnd());
 // dialogCancelScheduler.add(quitPsychoJS, '', false);
 
 // load resources for experiment (during or after dialog component)
+
 await psychoJS.start({
     expName: expName,
     expInfo: expInfo,
     resources: PROBES_TO_DOWNLOAD,
 });
-
 psychoJS.experimentLogger.setLevel(core.Logger.ServerLevel.EXP);
 
 async function checkDeviceIsPermittedToUse() {
@@ -221,9 +221,9 @@ function prepareReturnToMainRoutine() {
 
 
 function prepareImpasseRoutine() {
+    probe.prepareForNewStart();
     flowScheduler.add(probesDuringImpasse());
     routineTimer.reset(IMPASSE_INTERRUPTION_TIME);
-    probe.prepareForNewStart();
 }
 
 async function updateInfo() {
@@ -235,7 +235,6 @@ async function updateInfo() {
 
     // store frame rate of monitor if we can measure it successfully
     expInfo.frameRate = psychoJS.window.getActualFrameRate();
-
     // add info from the URL:
     util.addInfoFromUrl(expInfo);
 
@@ -354,7 +353,11 @@ async function eventHandlersInit() {
         if (!resetButton.isClicked) return;
 
         // TODO: обсудить как считать время хода, если человек нажал ЗАНОВО (во время зонда не решал)!
-        eventHandler.emitEvent(EVENT.RESET, singleClick);
+        eventHandler.emitEvent(EVENT.RESET, {
+            resetRT: singleClick.getData().RT,
+            timeFromStart: globalClock.getTime(),
+            timeSolving: mainClock.getTime(),
+        });
     };
 
     const registerChoosingHandler = () => {
@@ -393,8 +396,11 @@ async function eventHandlersInit() {
         eventHandler.emitEvent(
             EVENT.CHOSEN,
             {
-                chosenElement: chosenElement,
-                mouseData: clicker.getData()
+                element: chosenElement.name,
+                takenFrom: chosenElement.wasTakenFrom,
+                takeRT: clicker.getData().RT,
+                timeFromStart: globalClock.getTime(),
+                timeSolving: mainClock.getTime(),
             }
         );
     });
@@ -415,7 +421,10 @@ async function eventHandlersInit() {
             placedTo.name);
 
         eventHandler.emitEvent(EVENT.PLACED, {
-            mouseData: singleClick.getData()
+            placedTo: placedTo.name,
+            placeRT: singleClick.getData().RT,
+            timeFromStart: globalClock.getTime(),
+            timeSolving: mainClock.getTime(),
         });
     };
 
@@ -429,14 +438,14 @@ async function eventHandlersInit() {
     eventHandler.registerHandler({
         event: EVENT.CHOSEN,
         handler: (data) => {
-            movesObserver.addStartTime(data.mouseData.RT);
+            movesObserver.addStartTime(data.takenRT);
         }
     });
 
     eventHandler.registerHandler({
         event: EVENT.PLACED,
         handler: (data) => {
-            movesObserver.addEndTime(data.mouseData.RT);
+            movesObserver.addEndTime(data.placedRT);
         }
     });
 
@@ -456,11 +465,17 @@ async function eventHandlersInit() {
         EVENT.CHOSEN,
         EVENT.PLACED,
         EVENT.RESET,
+        EVENT.PROBE_ANSWER,
     ]
 
     eventsToSave.forEach((event) => eventHandler.registerHandler({
         event: event,
-        handler: (data) => console.log(event, data, mainClock, mainClock.getTime(), Object.keys(EVENT)[event])
+        handler: (data) => {
+            dataSaver.saveData({
+                event: Object.keys(EVENT)[event],
+                eventData: data,
+            })
+        }
     }))
 
     // eventHandler.registerHandler({
@@ -585,6 +600,15 @@ function probesDuringImpasse() {
         }
 
         if (probeKeyboard.isSendInput()) {
+            const pressInfo = probeKeyboard.getData();
+            eventHandler.emitEvent(EVENT.PROBE_ANSWER, {
+                probeType: PROBE_TYPE,
+                probeName: probe.getProbeName(),
+                probeRT: pressInfo.RT,
+                keyPressed: pressInfo.keyName,
+                isCorrect: probe.getPressCorrectness(pressInfo.keyName) ? 1 : 0,
+                timeFromStart: globalClock.getTime(),
+            });
             probeKeyboard.stop();
             probe.stop();
             // go to next probe if impasse intervention is not finished

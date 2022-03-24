@@ -8,6 +8,7 @@ const EVENTS = Object.freeze({
     'MOUSE_UPDATE': 3,
     'RESET': 4,
     'WRONG_SOLUTION': 5,
+    'PROBE_ANSWER': 6,
 });
 
 export const EVENT = new Proxy(EVENTS, {

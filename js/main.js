@@ -202,10 +202,22 @@ async function checkDeviceIsPermittedToUse() {
         /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
 
     if (regExpRestrictedDevices.test(navigator.userAgent)) {
-        // TODO: before launch check that message is correct
-        const exitMessage = `К сожалению для прохождения исследования нужна клавиатура. 
-        К тому же с мобильного устройства сложнее рассмотреть все визуальные элементы.
-        Запустите исследование с браузера компьютера, пожалуйста.`;
+        const exitMessage = `К сожалению, поучаствовать в исследовании можно только с компьютера или ноутбука`;
+        const messageEditorID = setInterval(() => {
+            const title = document.querySelector(".ui-dialog-title");
+            const message = document.querySelector("p.validateTips");
+
+            if (title !== null && message !== null) {
+                title.textContent = "Сообщение";
+                message.innerHTML = message.innerHTML
+                    .replace(
+                        "Thank you for your patience",
+                        "Спасибо за ваше терпение");
+                clearInterval(messageEditorID);
+            }
+
+        }, 10);
+
         await quitPsychoJS(exitMessage, false);
     }
     return Scheduler.Event.NEXT;

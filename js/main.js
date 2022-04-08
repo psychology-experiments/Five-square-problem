@@ -257,6 +257,7 @@ async function updateInfo() {
 let mainClock;
 let globalClock;
 let impasseProbesClock;
+let trainingProbesClock;
 let routineTimer;
 let grid;
 let dataSaver;
@@ -267,16 +268,21 @@ let katonaRules;
 let probe;
 let probeKeyboard;
 let movesObserver;
+let trainingProbe;
+let trainingKeyboard;
 
 async function experimentInit() {
     // Create some handy timers
     globalClock = new util.Clock();  // to track the time since experiment started
     routineTimer = new util.CountdownTimer();  // to track time remaining of each (non-slip) routine
 
-    // Initialize components for Routine "probesDuringImpasse"
+    // Initialize time components for Routine "probesTraining"
+    trainingProbesClock = new util.Clock();
+
+    // Initialize time components for Routine "probesDuringImpasse"
     impasseProbesClock = new util.Clock(); // to track the time since experiment started
 
-    // Initialize components for Routine "mainRoutine"
+    // Initialize time components for Routine "mainRoutine"
     mainClock = new util.Clock();
 
     const gridUnitWidth = 0.01;
@@ -335,6 +341,19 @@ async function experimentInit() {
         });
 
         probeKeyboard = new SingleSymbolKeyboard({
+            psychoJS: psychoJS,
+            additionalTrialData: new AdditionalTrialData({})
+        });
+
+        trainingProbe = createProbe({
+            probeType: PROBE_TYPE,
+            probes: PROBES_DATA[PROBE_TYPE].probes,
+            answers: PROBES_DATA[PROBE_TYPE].answers,
+            window: psychoJS.window,
+            position: [0.0, 0.0],
+            startTime: 0.1,
+        });
+        trainingKeyboard = new SingleSymbolKeyboard({
             psychoJS: psychoJS,
             additionalTrialData: new AdditionalTrialData({})
         });
@@ -595,6 +614,46 @@ function mainRoutineEnd() {
 
         prepareImpasseRoutine();
         return Scheduler.Event.NEXT;
+    };
+}
+
+function probesTraining() {
+    let t = 0;
+    trainingProbe.nextProbe();
+    trainingProbesClock.reset();
+    return async () => {
+        t = trainingProbesClock.getTime();
+
+        if (!trainingProbe.isStarted) {
+            trainingProbe.setAutoDraw(true, t);
+        }
+
+        if (!trainingKeyboard.isInitialized && trainingProbe.isStarted) {
+            trainingKeyboard.initialize({ keysToWatch: ['left', 'right'] });
+        }
+
+        if (trainingKeyboard.isSendInput()) {
+            const pressInfo = trainingKeyboard.getData();
+            eventHandler.emitEvent(EVENT.PROBE_ANSWER, {
+                probeType: PROBE_TYPE,
+                probeName: trainingProbe.getProbeName(),
+                probeRT: pressInfo.RT,
+                keyPressed: pressInfo.keyName,
+                isCorrect: trainingProbe.getPressCorrectness(pressInfo.keyName) ? 1 : 0,
+                timeFromStart: globalClock.getTime(),
+            });
+            trainingKeyboard.stop();
+            trainingProbe.stop();
+            // go to next probe if impasse intervention is not finished
+            flowScheduler.add(probesTraining());
+            return Scheduler.Event.NEXT;
+        }
+
+        if (routineTimer.getTime() < 0) {
+            return Scheduler.Event.NEXT;
+        }
+
+        return Scheduler.Event.FLIP_REPEAT;
     };
 }
 

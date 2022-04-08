@@ -9,7 +9,8 @@ const EVENTS = Object.freeze({
     'RESET': 4,
     'WRONG_SOLUTION': 5,
     'PROBE_ANSWER': 6,
-    'IMPASSE': 7
+    'TRAINING_PROBE_ANSWER': 7,
+    'IMPASSE': 8
 });
 
 export const EVENT = new Proxy(EVENTS, {

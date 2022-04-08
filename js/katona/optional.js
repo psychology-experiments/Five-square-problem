@@ -152,7 +152,14 @@ class DataSaver {
     constructor({ psychoJS }) {
         this._saveEngine = psychoJS.experiment;
 
-        this._katonaEvents = new Set(["CHOSEN", "PLACED", "RESET"]);
+        this._eventToStageName = {
+            "CHOSEN": "Katona",
+            "PLACED": "Katona",
+            "RESET": "Katona",
+            "IMPASSE": "Katona",
+            "PROBE_ANSWER": "Probe",
+            "TRAINING_PROBE_ANSWER": "Training Probe",
+        }
 
         // setting up order of columns
         this._saveEngine._currentTrialData = {
@@ -175,7 +182,7 @@ class DataSaver {
     }
 
     _addRowData(event, rowData) {
-        const stage = this._katonaEvents.has(event) ? "Katona" : "Probe";
+        const stage = this._eventToStageName[event];
         this._saveEngine.addData("stage", stage);
         const columnsData = Object.entries(rowData)
         for (const [columnName, columnValue] of columnsData) {

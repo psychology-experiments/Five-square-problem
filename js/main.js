@@ -13,6 +13,7 @@ import {
 } from './inputprocessing/inputprocessing.js';
 import { FiveSquareKatona } from './katona/katona.js';
 import { createProbe } from './probes/probe.js';
+import { instructions as INSTRUCTIONS } from "./instructions/instructions.js";
 
 
 const { PsychoJS } = core;
@@ -179,6 +180,7 @@ if (DOWNLOAD_RESOURCES) {
 flowScheduler.add(updateInfo); // add timeStamp
 flowScheduler.add(experimentInit);
 flowScheduler.add(eventHandlersInit);
+flowScheduler.add(showSingleInstruction("start", INSTRUCTIONS.start));
 
 
 flowScheduler.add(mainRoutineBegin(true));
@@ -258,6 +260,7 @@ let mainClock;
 let globalClock;
 let impasseProbesClock;
 let trainingProbesClock;
+let instructionClock;
 let routineTimer;
 let grid;
 let dataSaver;
@@ -270,11 +273,16 @@ let probeKeyboard;
 let movesObserver;
 let trainingProbe;
 let trainingKeyboard;
+let instructionExitKeyboard;
+let instructionTextStim;
 
 async function experimentInit() {
     // Create some handy timers
     globalClock = new util.Clock();  // to track the time since experiment started
     routineTimer = new util.CountdownTimer();  // to track time remaining of each (non-slip) routine
+
+    // Initialize time components for Routine "showSingleInstruction"
+    instructionClock = new util.Clock();
 
     // Initialize time components for Routine "probesTraining"
     trainingProbesClock = new util.Clock();
@@ -358,6 +366,20 @@ async function experimentInit() {
             additionalTrialData: new AdditionalTrialData({})
         });
     }
+
+    instructionTextStim = new visual.TextStim({
+        win: psychoJS.window,
+        color: new util.Color("black"),
+        height: 0.04,
+        text: "",
+        wrapWidth: psychoJS.window.size[0] / psychoJS.window.size[1] * 0.9
+    });
+
+    instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
+    instructionExitKeyboard = new SingleSymbolKeyboard({
+        psychoJS: psychoJS,
+        additionalTrialData: new AdditionalTrialData({})
+    });
 
     movesObserver = new MovesTimeObserver({
         minimalThresholdTime: MINIMAL_THRESHOLD_TIME
@@ -498,7 +520,7 @@ async function eventHandlersInit() {
         EVENT.RESET,
         EVENT.PROBE_ANSWER,
         EVENT.IMPASSE,
-    ]
+    ];
 
     eventsToSave.forEach((event) => eventHandler.registerHandler({
         event: event,
@@ -506,9 +528,9 @@ async function eventHandlersInit() {
             dataSaver.saveData({
                 event: Object.keys(EVENT)[event],
                 eventData: data,
-            })
+            });
         }
-    }))
+    }));
 
     // eventHandler.registerHandler({
     //     event: EVENT.CLICK,
@@ -591,7 +613,7 @@ function mainRoutineEachFrame() {
         }
 
         if (SHOW_PROBES && movesObserver.isImpasse()) {
-            eventHandler.emitEvent(EVENT.IMPASSE, {})
+            eventHandler.emitEvent(EVENT.IMPASSE, {});
             return Scheduler.Event.NEXT;
         }
 
@@ -619,6 +641,7 @@ function mainRoutineEnd() {
 
 function probesTraining() {
     let t = 0;
+    // trainingProbe.prepareForNewStart();
     trainingProbe.nextProbe();
     trainingProbesClock.reset();
     return async () => {
@@ -634,7 +657,7 @@ function probesTraining() {
 
         if (trainingKeyboard.isSendInput()) {
             const pressInfo = trainingKeyboard.getData();
-            eventHandler.emitEvent(EVENT.PROBE_ANSWER, {
+            eventHandler.emitEvent(EVENT.TRAINING_PROBE_ANSWER, {
                 probeType: PROBE_TYPE,
                 probeName: trainingProbe.getProbeName(),
                 probeRT: pressInfo.RT,
@@ -720,6 +743,40 @@ function probesDuringImpasse() {
 //         }
 //     };
 // }
+
+function showSingleInstruction(instructionName, instructionText) {
+    console.log(instructionName, instructionText);
+    return async () => {
+        t = instructionClock.getTime();
+
+        if (instructionTextStim.status !== PsychoJS.Status.STARTED) {
+            instructionTextStim.status = PsychoJS.Status.STARTED;
+            instructionTextStim.text = instructionText;
+            instructionTextStim.setAutoDraw(true);
+        }
+
+        if (!instructionExitKeyboard.isInitialized && instructionTextStim.status === PsychoJS.Status.STARTED) {
+            instructionExitKeyboard.initialize({ keysToWatch: ['space'] });
+        }
+
+        if (instructionExitKeyboard.isSendInput()) {
+            const pressInfo = instructionExitKeyboard.getData();
+            eventHandler.emitEvent(EVENT.INSTRUCTION_READING, {
+                instructionName: instructionName,
+                instructionExitRT: pressInfo.RT,
+                keyPressed: pressInfo.keyName,
+                timeFromStart: globalClock.getTime(),
+            });
+            instructionExitKeyboard.stop();
+            instructionTextStim.setAutoDraw(false);
+            instructionTextStim.status = PsychoJS.Status.FINISHED;
+
+            return Scheduler.Event.NEXT;
+        }
+
+        return Scheduler.Event.FLIP_REPEAT;
+    };
+}
 
 
 async function quitPsychoJS(message, isCompleted) {

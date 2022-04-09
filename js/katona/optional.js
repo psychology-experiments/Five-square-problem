@@ -177,6 +177,8 @@ class DataSaver {
             keyPressed: "",
             isCorrect: "",
             timeFromStart: "",
+            instructionName: "",
+            instructionExitRT: "",
         }
 
     }

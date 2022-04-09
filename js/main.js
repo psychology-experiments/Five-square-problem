@@ -23,12 +23,15 @@ const { EVENT } = eventHandler;
 
 // Development constants
 const DOWNLOAD_RESOURCES = true;
-const SHOW_PROBES = DOWNLOAD_RESOURCES && true;
+const SHOW_IMPASSE_PROBES = DOWNLOAD_RESOURCES && true;
+const SHOW_SINGLE_INSTRUCTION = true;
+const PROBE_TRAINING = true;
 // TODO: определить длительность прерывания
 const IMPASSE_INTERRUPTION_TIME = 15;
 const MINIMAL_THRESHOLD_TIME = 15;
 // TODO: make random or arbitrary choice of probes at experiment start
 const PROBE_TYPE = 'ShiftProbe';
+const MINIMAL_PROBE_TRAINING_TRAILS = 30;
 
 
 // store info about the experiment session:
@@ -180,13 +183,29 @@ if (DOWNLOAD_RESOURCES) {
 flowScheduler.add(updateInfo); // add timeStamp
 flowScheduler.add(experimentInit);
 flowScheduler.add(eventHandlersInit);
-flowScheduler.add(showSingleInstruction("start", INSTRUCTIONS.start));
-flowScheduler.add(showSingleInstruction("probe_training", INSTRUCTIONS.probeTraining));
-
-
+// instructions before training with grid and elements
+scheduleConditionally(flowScheduler,
+    showSingleInstruction("start", INSTRUCTIONS.start),
+    SHOW_SINGLE_INSTRUCTION);
+// instructions before training with probe
+scheduleConditionally(flowScheduler,
+    showSingleInstruction("beforeProbeTraining", INSTRUCTIONS.beforeProbeTraining),
+    SHOW_SINGLE_INSTRUCTION);
+// probe traing
+const addProbeTrainingTrial = scheduleConditionally(flowScheduler, probesTraining(INSTRUCTIONS[`${PROBE_TYPE}Full`]), PROBE_TRAINING);
+// instructions after training with probe
+scheduleConditionally(flowScheduler,
+    showSingleInstruction("afterProbeTraining", INSTRUCTIONS.afterProbeTraining),
+    SHOW_SINGLE_INSTRUCTION);
+// main task
 flowScheduler.add(mainRoutineBegin(true));
 flowScheduler.add(mainRoutineEachFrame());
 flowScheduler.add(mainRoutineEnd());
+// impasse task
+const addImpasseProbeTrial = scheduleConditionally(flowScheduler,
+    probesDuringImpasse(),
+    SHOW_IMPASSE_PROBES);
+
 
 // quit if user presses Cancel in dialog box: TODO: uncomment when script ready
 // dialogCancelScheduler.add(quitPsychoJS, '', false);
@@ -239,6 +258,26 @@ function prepareImpasseRoutine() {
     probe.prepareForNewStart();
     flowScheduler.add(probesDuringImpasse());
     routineTimer.reset(IMPASSE_INTERRUPTION_TIME);
+}
+
+function preparTrainingRoutine() {
+    probe.prepareForNewStart();
+    flowScheduler.add(probesDuringImpasse());
+    routineTimer.reset(IMPASSE_INTERRUPTION_TIME);
+}
+
+function skipRoutine() {
+    return Scheduler.Event.NEXT;
+}
+
+function scheduleConditionally(scheduler, routine, condition) {
+    const routineScheduler = new Scheduler(psychoJS);
+    routineScheduler.add(routine);
+    if (condition) {
+        scheduler.add(routineScheduler);
+        return () => routineScheduler.add(routine);
+    }
+
 }
 
 async function updateInfo() {
@@ -338,7 +377,7 @@ async function experimentInit() {
         }
     );
 
-    if (SHOW_PROBES) {
+    if (SHOW_IMPASSE_PROBES) {
         // TODO: make random or arbitrary choice of probes at experiment start
         probe = createProbe({
             probeType: PROBE_TYPE,
@@ -613,7 +652,7 @@ function mainRoutineEachFrame() {
             return Scheduler.Event.NEXT;
         }
 
-        if (SHOW_PROBES && movesObserver.isImpasse()) {
+        if (SHOW_IMPASSE_PROBES && movesObserver.isImpasse()) {
             eventHandler.emitEvent(EVENT.IMPASSE, {});
             return Scheduler.Event.NEXT;
         }
@@ -640,12 +679,17 @@ function mainRoutineEnd() {
     };
 }
 
-function probesTraining() {
-    let t = 0;
-    // trainingProbe.prepareForNewStart();
-    trainingProbe.nextProbe();
-    trainingProbesClock.reset();
+function probesTraining(probeInstruction) {
+    let n = 0;
+    let areProbesPrepared = false;
     return async () => {
+        if (!areProbesPrepared) {
+            areProbesPrepared = true;
+            trainingProbe.prepareForNewStart();
+            trainingProbe.nextProbe();
+            trainingProbesClock.reset();
+        }
+
         t = trainingProbesClock.getTime();
 
         if (!trainingProbe.isStarted) {
@@ -668,12 +712,15 @@ function probesTraining() {
             });
             trainingKeyboard.stop();
             trainingProbe.stop();
-            // go to next probe if impasse intervention is not finished
-            flowScheduler.add(probesTraining());
+            trainingProbe.nextProbe();
+            // go to next probe if training is not finished
+            addProbeTrainingTrial();
+            n += 1;
             return Scheduler.Event.NEXT;
         }
 
-        if (routineTimer.getTime() < 0) {
+        if (n === MINIMAL_PROBE_TRAINING_TRAILS) {
+            trainingProbe.stop();
             return Scheduler.Event.NEXT;
         }
 
@@ -683,8 +730,8 @@ function probesTraining() {
 
 function probesDuringImpasse() {
     let t = 0;
-    probe.nextProbe();
-    impasseProbesClock.reset();
+    // probe.nextProbe();
+    // impasseProbesClock.reset();
     return async () => {
         t = impasseProbesClock.getTime();
 
@@ -746,7 +793,6 @@ function probesDuringImpasse() {
 // }
 
 function showSingleInstruction(instructionName, instructionText) {
-    console.log(instructionName, instructionText);
     return async () => {
         t = instructionClock.getTime();
 

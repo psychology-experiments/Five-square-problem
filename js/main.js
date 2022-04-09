@@ -181,6 +181,7 @@ flowScheduler.add(updateInfo); // add timeStamp
 flowScheduler.add(experimentInit);
 flowScheduler.add(eventHandlersInit);
 flowScheduler.add(showSingleInstruction("start", INSTRUCTIONS.start));
+flowScheduler.add(showSingleInstruction("probe_training", INSTRUCTIONS.probeTraining));
 
 
 flowScheduler.add(mainRoutineBegin(true));

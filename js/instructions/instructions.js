@@ -24,11 +24,14 @@ const start = `
 Сейчас мы покажем, как делать ходы на компьютере.\n
 Если инструкция понятна, нажмите ПРОБЕЛ`;
 const controlsTraining = ``;
-const probeTraining = `
+const beforeProbeTraining = `
 Отлично!\n
 Иногда, возможно, программа попросит Вас отложить 
 на время решение основной задачи
 и на несколько секунд отвлечься на другое задание.\n
+Нажмите ПРОБЕЛ, чтобы потренироваться выполнять задание.`;
+const afterProbeTraining = `
+После!\n
 Нажмите ПРОБЕЛ, чтобы потренироваться выполнять задание.`;
 const ShiftProbeFull = `
 Сейчас на экране Вам будут показаны различные фигуры
@@ -72,7 +75,8 @@ const UpdateProbeShort = `
 const rawInstructions = {
     start,
     controlsTraining,
-    probeTraining,
+    beforeProbeTraining,
+    afterProbeTraining,
     ShiftProbeFull,
     ShiftProbeShort,
     InhibitionProbeFull,

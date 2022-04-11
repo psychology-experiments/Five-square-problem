@@ -207,9 +207,9 @@ flowScheduler.add(mainRoutineBegin(true));
 flowScheduler.add(mainRoutineEachFrame());
 flowScheduler.add(mainRoutineEnd());
 // impasse task
-const addImpasseProbeTrial = scheduleConditionally(flowScheduler,
-    probesDuringImpasse(),
-    SHOW_IMPASSE_PROBES);
+// const addImpasseProbeTrial = scheduleConditionally(flowScheduler,
+//     probesDuringImpasse(),
+//     SHOW_IMPASSE_PROBES);
 
 
 // quit if user presses Cancel in dialog box: TODO: uncomment when script ready

@@ -13,7 +13,7 @@ import {
 } from './inputprocessing/inputprocessing.js';
 import { FiveSquareKatona } from './katona/katona.js';
 import { createProbe } from './probes/probe.js';
-import { instructions, instructions as INSTRUCTIONS } from "./instructions/instructions.js";
+import { instructions as INSTRUCTIONS } from "./instructions/instructions.js";
 
 
 const { PsychoJS } = core;

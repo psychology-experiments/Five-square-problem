@@ -58,14 +58,14 @@ const PROBES_DATA = {
     },
     'ShiftProbe': {
         'probes': [
-            'materials/Probes/Switch/1.png',
-            'materials/Probes/Switch/2.png',
-            'materials/Probes/Switch/3.png',
-            'materials/Probes/Switch/4.png',
-            'materials/Probes/Switch/5.png',
-            'materials/Probes/Switch/6.png',
-            'materials/Probes/Switch/7.png',
-            'materials/Probes/Switch/8.png'
+            'materials/Probes/Shift/1.png',
+            'materials/Probes/Shift/2.png',
+            'materials/Probes/Shift/3.png',
+            'materials/Probes/Shift/4.png',
+            'materials/Probes/Shift/5.png',
+            'materials/Probes/Shift/6.png',
+            'materials/Probes/Shift/7.png',
+            'materials/Probes/Shift/8.png'
         ],
         'answers': [
             'right',

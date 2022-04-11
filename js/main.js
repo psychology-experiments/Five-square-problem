@@ -13,7 +13,7 @@ import {
 } from './inputprocessing/inputprocessing.js';
 import { FiveSquareKatona } from './katona/katona.js';
 import { createProbe } from './probes/probe.js';
-import { instructions as INSTRUCTIONS } from "./instructions/instructions.js";
+import { instructions, instructions as INSTRUCTIONS } from "./instructions/instructions.js";
 
 
 const { PsychoJS } = core;
@@ -339,9 +339,9 @@ async function experimentInit() {
     mainClock = new util.Clock();
 
     const gridUnitWidth = 0.01;
-    const gridUnitHeight = 0.09;
+    const gridUnitHeight = 0.07;
     const gridInfo = new Grid({
-        startPoint: [-0.4, 0.47],
+        startPoint: [-0.4, 0.45],
         gridSquares: 9,
         gridUnitLength: gridUnitHeight,
         gridUnitWidth: gridUnitWidth,
@@ -415,9 +415,9 @@ async function experimentInit() {
     instructionTextStim = new visual.TextStim({
         win: psychoJS.window,
         color: new util.Color("black"),
-        height: 0.04,
+        height: 0.035,
         text: "",
-        wrapWidth: psychoJS.window.size[0] / psychoJS.window.size[1] * 0.85
+        wrapWidth: psychoJS.window.size[0] / psychoJS.window.size[1] * 0.8
     });
 
     instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
@@ -600,6 +600,10 @@ function mainRoutineBegin(firstStart) {
         //------Prepare to start Routine 'trial'-------
         grid.status = PsychoJS.Status.NOT_STARTED;
         resetButton.status = PsychoJS.Status.NOT_STARTED;
+        instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
+
+        instructionTextStim.text = INSTRUCTIONS.fiveSquare;
+        instructionTextStim.pos = [0, -0.4];
 
         if (firstStart) {
             t = 0;
@@ -636,6 +640,11 @@ function mainRoutineEachFrame() {
             TIME_BEFORE_START) {
             resetButton.setAutoDraw(true);
             resetButton.status = PsychoJS.Status.STARTED;
+        }
+
+        if (instructionTextStim.status === PsychoJS.Status.NOT_STARTED) {
+            instructionTextStim.status = PsychoJS.Status.STARTED;
+            instructionTextStim.setAutoDraw(true);
         }
 
         if (!singleClick.isInitialized && t >= TIME_BEFORE_START) {
@@ -680,6 +689,9 @@ function mainRoutineEnd() {
         singleClick.stop();
         grid.setAutoDraw(false);
         resetButton.setAutoDraw(false);
+
+        instructionTextStim.status = PsychoJS.Status.FINISHED;
+        instructionTextStim.pos = [0, 0];
 
         prepareImpasseRoutine();
         return Scheduler.Event.NEXT;

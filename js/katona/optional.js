@@ -159,6 +159,7 @@ class DataSaver {
             "IMPASSE": "Katona",
             "PROBE_ANSWER": "Probe",
             "TRAINING_PROBE_ANSWER": "Training Probe",
+            "INSTRUCTION_READING": "Instuction",
         }
 
         // setting up order of columns

@@ -565,6 +565,8 @@ async function eventHandlersInit() {
         EVENT.RESET,
         EVENT.PROBE_ANSWER,
         EVENT.IMPASSE,
+        EVENT.INSTRUCTION_READING,
+        EVENT.TRAINING_PROBE_ANSWER,
     ];
 
     eventsToSave.forEach((event) => eventHandler.registerHandler({

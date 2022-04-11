@@ -191,8 +191,13 @@ scheduleConditionally(flowScheduler,
 scheduleConditionally(flowScheduler,
     showSingleInstruction("beforeProbeTraining", INSTRUCTIONS.beforeProbeTraining),
     SHOW_SINGLE_INSTRUCTION);
+scheduleConditionally(flowScheduler,
+    showSingleInstruction("beforeProbeTraining", INSTRUCTIONS[`${PROBE_TYPE}Full`]),
+    SHOW_SINGLE_INSTRUCTION);
 // probe traing
-const addProbeTrainingTrial = scheduleConditionally(flowScheduler, probesTraining(INSTRUCTIONS[`${PROBE_TYPE}Full`]), PROBE_TRAINING);
+const addProbeTrainingTrial = scheduleConditionally(flowScheduler,
+    probesTraining(INSTRUCTIONS[`${PROBE_TYPE}Short`]),
+    PROBE_TRAINING);
 // instructions after training with probe
 scheduleConditionally(flowScheduler,
     showSingleInstruction("afterProbeTraining", INSTRUCTIONS.afterProbeTraining),
@@ -685,13 +690,13 @@ function probesTraining(probeInstruction) {
     return async () => {
         if (!areProbesPrepared) {
             areProbesPrepared = true;
-            trainingProbe.position = [0, -0.25]
+            trainingProbe.position = [0, -0.25];
             trainingProbe.prepareForNewStart();
             trainingProbe.nextProbe();
             trainingProbesClock.reset();
 
             instructionTextStim.text = probeInstruction;
-            instructionTextStim.pos = [0, 0.2]
+            instructionTextStim.pos = [0, 0.2];
             instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
         }
 
@@ -730,6 +735,7 @@ function probesTraining(probeInstruction) {
 
         if (n === MINIMAL_PROBE_TRAINING_TRAILS) {
             trainingProbe.stop();
+            instructionTextStim.pos = [0, 0];
             instructionTextStim.status = PsychoJS.Status.FINISHED;
             instructionTextStim.setAutoDraw(false);
             return Scheduler.Event.NEXT;

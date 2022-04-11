@@ -412,7 +412,7 @@ async function experimentInit() {
         color: new util.Color("black"),
         height: 0.04,
         text: "",
-        wrapWidth: psychoJS.window.size[0] / psychoJS.window.size[1] * 0.9
+        wrapWidth: psychoJS.window.size[0] / psychoJS.window.size[1] * 0.85
     });
 
     instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
@@ -685,15 +685,24 @@ function probesTraining(probeInstruction) {
     return async () => {
         if (!areProbesPrepared) {
             areProbesPrepared = true;
+            trainingProbe.position = [0, -0.25]
             trainingProbe.prepareForNewStart();
             trainingProbe.nextProbe();
             trainingProbesClock.reset();
+
+            instructionTextStim.text = probeInstruction;
+            instructionTextStim.pos = [0, 0.2]
+            instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
         }
 
         t = trainingProbesClock.getTime();
 
         if (!trainingProbe.isStarted) {
             trainingProbe.setAutoDraw(true, t);
+        }
+
+        if (instructionTextStim.status === PsychoJS.Status.NOT_STARTED) {
+            instructionTextStim.setAutoDraw(true);
         }
 
         if (!trainingKeyboard.isInitialized && trainingProbe.isStarted) {
@@ -721,6 +730,8 @@ function probesTraining(probeInstruction) {
 
         if (n === MINIMAL_PROBE_TRAINING_TRAILS) {
             trainingProbe.stop();
+            instructionTextStim.status = PsychoJS.Status.FINISHED;
+            instructionTextStim.setAutoDraw(false);
             return Scheduler.Event.NEXT;
         }
 

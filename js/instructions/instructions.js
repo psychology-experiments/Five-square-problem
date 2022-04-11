@@ -79,6 +79,9 @@ const UpdateProbeFull = `
 const UpdateProbeShort = `
 Если фигура на экране ОДИНАКОВАЯ с предыдущей фигурой, нажимайте стрелку ВПРАВО\n
 Если предъявленная фигура и фигура до нее РАЗЛИЧНЫ – стрелку ВЛЕВО\n`;
+const fiveSquare = `
+Палочки на экране организуют фигуру из пяти квадратов. 
+Ваша задача – переместить ровно три палочки, чтобы получить четыре квадрата одинакового размера.`
 
 const rawInstructions = {
     start,
@@ -93,6 +96,7 @@ const rawInstructions = {
     InhibitionProbeShort,
     UpdateProbeFull,
     UpdateProbeShort,
+    fiveSquare,
 };
 
 const instructions = {};

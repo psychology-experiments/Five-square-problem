@@ -689,6 +689,7 @@ function mainRoutineEnd() {
         singleClick.stop();
         grid.setAutoDraw(false);
         resetButton.setAutoDraw(false);
+        instructionTextStim.setAutoDraw(false);
 
         instructionTextStim.status = PsychoJS.Status.FINISHED;
         instructionTextStim.pos = [0, 0];

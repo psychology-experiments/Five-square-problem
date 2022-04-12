@@ -253,6 +253,7 @@ async function checkDeviceIsPermittedToUse() {
 
 function prepareReturnToMainRoutine() {
     probe.setAutoDraw(false, t);
+    instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
     flowScheduler.add(mainRoutineBegin(false));
     flowScheduler.add(mainRoutineEachFrame());
     flowScheduler.add(mainRoutineEnd());
@@ -261,6 +262,9 @@ function prepareReturnToMainRoutine() {
 
 function prepareImpasseRoutine() {
     probe.prepareForNewStart();
+    instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
+    instructionTextStim.text = INSTRUCTIONS[`${PROBE_TYPE}Short`];
+    instructionTextStim.pos = [0, 0.2];
     flowScheduler.add(probesDuringImpasse());
     routineTimer.reset(IMPASSE_INTERRUPTION_TIME);
 }
@@ -389,7 +393,7 @@ async function experimentInit() {
             probes: PROBES_DATA[PROBE_TYPE].probes,
             answers: PROBES_DATA[PROBE_TYPE].answers,
             window: psychoJS.window,
-            position: [0.0, 0.0],
+            position: [0.0, -0.25],
             startTime: 0.1,
         });
 
@@ -768,6 +772,10 @@ function probesDuringImpasse() {
 
         if (!probe.isStarted) {
             probe.setAutoDraw(true, t);
+        }
+
+        if (instructionTextStim.status === PsychoJS.Status.NOT_STARTED) {
+            instructionTextStim.setAutoDraw(true);
         }
 
         if (!probeKeyboard.isInitialized && probe.isStarted) {

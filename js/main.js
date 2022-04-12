@@ -761,8 +761,8 @@ function probesTraining(probeInstruction) {
 
 function probesDuringImpasse() {
     let t = 0;
-    // probe.nextProbe();
-    // impasseProbesClock.reset();
+    probe.nextProbe();
+    impasseProbesClock.reset();
     return async () => {
         t = impasseProbesClock.getTime();
 

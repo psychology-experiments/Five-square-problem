@@ -403,7 +403,7 @@ async function experimentInit() {
             probes: PROBES_DATA[PROBE_TYPE].probes,
             answers: PROBES_DATA[PROBE_TYPE].answers,
             window: psychoJS.window,
-            position: [0.0, 0.0],
+            position: [0.0, -0.25],
             startTime: 0.1,
         });
         trainingKeyboard = new SingleSymbolKeyboard({
@@ -705,7 +705,6 @@ function probesTraining(probeInstruction) {
     return async () => {
         if (!areProbesPrepared) {
             areProbesPrepared = true;
-            trainingProbe.position = [0, -0.25];
             trainingProbe.prepareForNewStart();
             trainingProbe.nextProbe();
             trainingProbesClock.reset();

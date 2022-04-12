@@ -192,7 +192,7 @@ scheduleConditionally(flowScheduler,
     showSingleInstruction("beforeProbeTraining", INSTRUCTIONS.beforeProbeTraining),
     SHOW_SINGLE_INSTRUCTION);
 scheduleConditionally(flowScheduler,
-    showSingleInstruction("beforeProbeTraining", INSTRUCTIONS[`${PROBE_TYPE}Full`]),
+    showSingleInstruction(`${PROBE_TYPE}Full`, INSTRUCTIONS[`${PROBE_TYPE}Full`]),
     SHOW_SINGLE_INSTRUCTION);
 // probe traing
 const addProbeTrainingTrial = scheduleConditionally(flowScheduler,

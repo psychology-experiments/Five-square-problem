@@ -185,14 +185,14 @@ flowScheduler.add(experimentInit);
 flowScheduler.add(eventHandlersInit);
 // instructions before training with grid and elements
 scheduleConditionally(flowScheduler,
-    showSingleInstruction("start", INSTRUCTIONS.start),
+    showSingleInstruction("start", INSTRUCTIONS),
     SHOW_SINGLE_INSTRUCTION);
 // instructions before training with probe
 scheduleConditionally(flowScheduler,
-    showSingleInstruction("beforeProbeTraining", INSTRUCTIONS.beforeProbeTraining),
+    showSingleInstruction("beforeProbeTraining", INSTRUCTIONS),
     SHOW_SINGLE_INSTRUCTION);
 scheduleConditionally(flowScheduler,
-    showSingleInstruction(`${PROBE_TYPE}Full`, INSTRUCTIONS[`${PROBE_TYPE}Full`]),
+    showSingleInstruction(`${PROBE_TYPE}Full`, INSTRUCTIONS),
     SHOW_SINGLE_INSTRUCTION);
 // probe traing
 const addProbeTrainingTrial = scheduleConditionally(flowScheduler,
@@ -200,7 +200,7 @@ const addProbeTrainingTrial = scheduleConditionally(flowScheduler,
     PROBE_TRAINING);
 // instructions after training with probe
 scheduleConditionally(flowScheduler,
-    showSingleInstruction("afterProbeTraining", INSTRUCTIONS.afterProbeTraining),
+    showSingleInstruction("afterProbeTraining", INSTRUCTIONS),
     SHOW_SINGLE_INSTRUCTION);
 // main task
 flowScheduler.add(mainRoutineBegin(true));
@@ -831,13 +831,13 @@ function probesDuringImpasse() {
 //     };
 // }
 
-function showSingleInstruction(instructionName, instructionText) {
+function showSingleInstruction(instructionName, instructions) {
     return async () => {
         t = instructionClock.getTime();
 
         if (instructionTextStim.status !== PsychoJS.Status.STARTED) {
             instructionTextStim.status = PsychoJS.Status.STARTED;
-            instructionTextStim.text = instructionText;
+            instructionTextStim.text = instructions[instructionName];
             instructionTextStim.setAutoDraw(true);
         }
 

@@ -311,7 +311,7 @@ let impasseProbesClock;
 let trainingProbesClock;
 let instructionClock;
 let routineTimer;
-let grid;
+let fiveSquaresGrid;
 let dataSaver;
 
 let singleClick;
@@ -344,21 +344,21 @@ async function experimentInit() {
 
     const gridUnitWidth = 0.01;
     const gridUnitHeight = 0.07;
-    const gridInfo = new Grid({
+    const fiveSquaresGridInfo = new Grid({
         startPoint: [-0.4, 0.45],
         gridSquares: 9,
         gridUnitLength: gridUnitHeight,
         gridUnitWidth: gridUnitWidth,
     });
 
-    grid = new VisualGrid({
+    fiveSquaresGrid = new VisualGrid({
         window: psychoJS.window,
-        grid: gridInfo,
+        grid: fiveSquaresGridInfo,
         gridColor: 'lightgrey',
         movableElementColor: 'black',
         movableElementsRelativeIndexes: MOVABLE_STICKS_INDEXES,
     });
-    const gridBoundingBox = grid.getBoundingBox();
+    const gridBoundingBox = fiveSquaresGrid.getBoundingBox();
 
     singleClick = new movement.SingleClickMouse({
         window: psychoJS.window,
@@ -381,7 +381,7 @@ async function experimentInit() {
 
     katonaRules = new FiveSquareKatona(
         {
-            indexMapperFunction: grid.getRelativeIdxToAbsoluteMapper(),
+            indexMapperFunction: fiveSquaresGrid.getRelativeIdxToAbsoluteMapper(),
             movableElementsRelativeIndexes: MOVABLE_STICKS_INDEXES,
         }
     );
@@ -447,7 +447,7 @@ async function eventHandlersInit() {
     const handleNewClick = () => singleClick.clearInput();
     const resetToDefaultState = () => {
         eventHandler.removeAllExpiringHandlers();
-        grid.returnToDefault();
+        fiveSquaresGrid.returnToDefault();
         katonaRules.returnToDefault();
         registerChoosingHandler();
     };
@@ -488,7 +488,7 @@ async function eventHandlersInit() {
 
     // main handlers (switching)
     const gridElementChoosingHandler = ((clicker) => {
-        const chosenElement = movement.chooseElement(grid, clicker);
+        const chosenElement = movement.chooseElement(fiveSquaresGrid, clicker);
 
         if (chosenElement === null) return;
 
@@ -510,7 +510,7 @@ async function eventHandlersInit() {
     const gridElementPlacingHandler = (chosenElement) => {
         const placedTo = movement.placeElement(
             chosenElement,
-            grid,
+            fiveSquaresGrid,
             singleClick
         );
 
@@ -602,7 +602,7 @@ let frameN;
 function mainRoutineBegin(firstStart) {
     return async function() {
         //------Prepare to start Routine 'trial'-------
-        grid.status = PsychoJS.Status.NOT_STARTED;
+        fiveSquaresGrid.status = PsychoJS.Status.NOT_STARTED;
         resetButton.status = PsychoJS.Status.NOT_STARTED;
         instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
 
@@ -634,10 +634,10 @@ function mainRoutineEachFrame() {
         frameN = frameN + 1;// number of completed frames (so 0 is the first frame)
         // update/draw components on each frame
 
-        if (grid.status === PsychoJS.Status.NOT_STARTED && t >=
+        if (fiveSquaresGrid.status === PsychoJS.Status.NOT_STARTED && t >=
             TIME_BEFORE_START) {
-            grid.setAutoDraw(true);
-            grid.status = PsychoJS.Status.STARTED;
+            fiveSquaresGrid.setAutoDraw(true);
+            fiveSquaresGrid.status = PsychoJS.Status.STARTED;
         }
 
         if (resetButton.status === PsychoJS.Status.NOT_STARTED && t >=
@@ -686,12 +686,12 @@ function mainRoutineEachFrame() {
 function mainRoutineEnd() {
     return async function() {
         // the Routine "main" was not non-slip safe, so reset the non-slip timer
-        grid.status = PsychoJS.Status.NOT_STARTED;
+        fiveSquaresGrid.status = PsychoJS.Status.NOT_STARTED;
         resetButton.status = PsychoJS.Status.NOT_STARTED;
 
         // TODO: check all states and make sure Katona is stopped during probe
         singleClick.stop();
-        grid.setAutoDraw(false);
+        fiveSquaresGrid.setAutoDraw(false);
         resetButton.setAutoDraw(false);
         instructionTextStim.setAutoDraw(false);
 

@@ -9,9 +9,8 @@ const EVENTS = Object.freeze({
     'RESET': 4,
     'WRONG_SOLUTION': 5,
     'PROBE_ANSWER': 6,
-    'TRAINING_PROBE_ANSWER': 7,
-    'IMPASSE': 8,
-    'INSTRUCTION_READING': 9,
+    'IMPASSE': 7,
+    'INSTRUCTION_READING': 8,
 });
 
 export const EVENT = new Proxy(EVENTS, {
@@ -86,7 +85,6 @@ export function registerSingleEventHandler({
 }
 
 export function emitEvent(event, data) {
-    console.log("EMITTING", Object.keys(EVENT)[event])
     EMITTER.emit(event, data);
     removeExpiredHandlers(event);
 }

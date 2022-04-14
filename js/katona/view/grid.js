@@ -181,6 +181,14 @@ class SingleMovableElement {
         this._visualElement.ori = orientation;
     }
 
+    getElementInfo() {
+        return {
+            name: this.name,
+            takenFrom: this.wasTakenFrom,
+            placedOn: this._wasPlacedOn.name,
+        }
+    }
+
     returnToDefault() {
         if (this._wasPlacedOn !== this._defaultGridElement) {
             // return to default grid element that did not have movable element
@@ -218,12 +226,14 @@ class MovableElements {
 
 class VisualGrid {
     constructor({
+        name,
         window,
         grid,
         gridColor,
         movableElementColor,
         movableElementsRelativeIndexes,
     }) {
+        this.name = name;
         this._window = window;
         this._grid = grid;
         this.gridElements = [];
@@ -343,6 +353,16 @@ class VisualGrid {
     returnToDefault() {
         this._movableElements.returnToDefault();
         this.setAutoDraw(true);
+    }
+
+    setGridElementColor(index, color) {
+        for (const gridElement of this.gridElements) {
+            if (gridElement.name === index) {
+                gridElement.fillColor = color;
+                gridElement.lineColor = color;
+            }
+        }
+
     }
 
     setAutoDraw(toShow) {

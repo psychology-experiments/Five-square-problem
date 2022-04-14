@@ -158,9 +158,8 @@ class DataSaver {
             "RESET": "Katona",
             "IMPASSE": "Katona",
             "PROBE_ANSWER": "Probe",
-            "TRAINING_PROBE_ANSWER": "Training Probe",
             "INSTRUCTION_READING": "Instuction",
-        }
+        };
 
         // setting up order of columns
         this._saveEngine._currentTrialData = {
@@ -180,14 +179,16 @@ class DataSaver {
             timeFromStart: "",
             instructionName: "",
             instructionExitRT: "",
-        }
+        };
 
     }
 
     _addRowData(event, rowData) {
         const stage = this._eventToStageName[event];
-        this._saveEngine.addData("stage", stage);
-        const columnsData = Object.entries(rowData)
+        const trainingModifier = "isTraining" in rowData ? "Training " : "";
+        if (rowData.isTraining) delete rowData.isTraining;
+        this._saveEngine.addData("stage", trainingModifier + stage);
+        const columnsData = Object.entries(rowData);
         for (const [columnName, columnValue] of columnsData) {
             this._saveEngine.addData(columnName, columnValue);
         }

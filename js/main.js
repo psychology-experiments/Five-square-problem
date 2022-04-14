@@ -25,6 +25,7 @@ const { EVENT } = eventHandler;
 const DOWNLOAD_RESOURCES = true;
 const SHOW_IMPASSE_PROBES = DOWNLOAD_RESOURCES && true;
 const SHOW_SINGLE_INSTRUCTION = true;
+const GRID_TRAINING = true;
 const PROBE_TRAINING = true;
 // TODO: определить длительность прерывания
 const IMPASSE_INTERRUPTION_TIME = 15;
@@ -187,6 +188,49 @@ flowScheduler.add(eventHandlersInit);
 scheduleConditionally(flowScheduler,
     showSingleInstruction("start", INSTRUCTIONS),
     SHOW_SINGLE_INSTRUCTION);
+// training with grid and elements
+scheduleConditionally(flowScheduler,
+    trainingOnGrid(
+        [[0, 0]],
+        ["[1,2]"],
+        (grid, [target]) => {
+            const movableElement = grid.movableElements[0];
+            return movableElement.getElementInfo().placedOn === target;
+        },
+        "firstControlsTraining",
+        INSTRUCTIONS),
+    GRID_TRAINING);
+scheduleConditionally(flowScheduler,
+    trainingOnGrid(
+        [[0, -1], [0, 0]],
+        ["[6,2]"],
+        (grid, [target]) => {
+            const movableElements = grid.movableElements;
+            return movableElements.some((element) => {
+                return element.getElementInfo().placedOn === target;
+            });
+        },
+        "secondControlsTraining",
+        INSTRUCTIONS),
+    GRID_TRAINING);
+scheduleConditionally(flowScheduler,
+    trainingOnGrid(
+        [[-2, -1], [0, -1], [2, -1]],
+        ["[1,3]", "[3,3]", "[5,3]"],
+        (() => {
+            let isFinished = false;
+            return (grid, targets) => {
+                if (isFinished) return true;
+
+                const movableElements = grid.movableElements;
+                isFinished = movableElements.every((element) =>
+                    targets.includes(element.getElementInfo().placedOn));
+                return isFinished;
+            };
+        })(),
+        "thirdControlsTraining",
+        INSTRUCTIONS),
+    GRID_TRAINING);
 // instructions before training with probe
 scheduleConditionally(flowScheduler,
     showSingleInstruction("beforeProbeTraining", INSTRUCTIONS),
@@ -315,7 +359,7 @@ let fiveSquaresGrid;
 let dataSaver;
 
 let singleClick;
-let resetButton;
+let mainResetButton;
 let katonaRules;
 let probe;
 let probeKeyboard;
@@ -369,7 +413,7 @@ async function experimentInit() {
         gridBoundingBox[1][0] + gridUnitHeight * 2,
         (gridBoundingBox[1][1] + gridBoundingBox[2][1]) / 2,
     ];
-    resetButton = new visual.ButtonStim({
+    mainResetButton = new visual.ButtonStim({
         win: psychoJS.window,
         text: 'Заново',
         fillColor: new util.Color('#011B56'),
@@ -445,14 +489,21 @@ async function eventHandlersInit() {
     // without handleNewClick previous to choosing mouse wheel movement would
     // trigger rotation of the chosen problem element
     const handleNewClick = () => singleClick.clearInput();
-    const resetToDefaultState = () => {
+    const resetFiveSquaresToDefaultState = ({ isTraining }) => {
+        if (isTraining) {
+            eventHandler.removeAllExpiringHandlers();
+            setTimeout(registerChoosingHandler, 6000);
+            return;
+        }
+
         eventHandler.removeAllExpiringHandlers();
         fiveSquaresGrid.returnToDefault();
         katonaRules.returnToDefault();
+
         registerChoosingHandler();
     };
-    const isResetButtonClick = () => {
-        if (!resetButton.isClicked) return;
+    const isMainResetButtonClick = () => {
+        if (!mainResetButton.isClicked) return;
 
         // TODO: обсудить как считать время хода, если человек нажал ЗАНОВО (во время зонда не решал)!
         eventHandler.emitEvent(EVENT.RESET, {
@@ -478,56 +529,68 @@ async function eventHandlersInit() {
         });
     };
 
-    const registerPlacingHandler = (chosenElement) => {
+    const registerPlacingHandler = (chosenElement, grid, isTraining) => {
         eventHandler.registerHandler({
             event: EVENT.CLICK,
-            handler: () => gridElementPlacingHandler(chosenElement),
+            handler: () => gridElementPlacingHandler(chosenElement, grid, isTraining),
             removeAfter: EVENT.PLACED,
         });
     };
 
     // main handlers (switching)
-    const gridElementChoosingHandler = ((clicker) => {
-        const chosenElement = movement.chooseElement(fiveSquaresGrid, clicker);
+    const gridElementChoosingHandler = (({ clicker, grid, routineClock, isTraining }) => {
+        const chosenElement = movement.chooseElement(grid, clicker);
 
         if (chosenElement === null) return;
 
         registerDraggingHandler(clicker, chosenElement);
-        registerPlacingHandler(chosenElement);
+        registerPlacingHandler(chosenElement, grid, isTraining);
 
+        const reportData = {
+            // isTraining: isTraining,
+            element: chosenElement.name,
+            takenFrom: chosenElement.wasTakenFrom,
+            takeRT: clicker.getData().RT,
+            timeFromStart: globalClock.getTime(),
+            timeSolving: routineClock.getTime(),
+        };
+        if (isTraining) {
+            reportData["isTraining"] = isTraining;
+        }
         eventHandler.emitEvent(
             EVENT.CHOSEN,
-            {
-                element: chosenElement.name,
-                takenFrom: chosenElement.wasTakenFrom,
-                takeRT: clicker.getData().RT,
-                timeFromStart: globalClock.getTime(),
-                timeSolving: mainClock.getTime(),
-            }
+            reportData
         );
     });
 
-    const gridElementPlacingHandler = (chosenElement) => {
+    const gridElementPlacingHandler = (chosenElement, grid, isTraining) => {
         const placedTo = movement.placeElement(
             chosenElement,
-            fiveSquaresGrid,
+            grid,
             singleClick
         );
 
         if (placedTo === null) return;
 
         registerChoosingHandler();
-        katonaRules.countMove(
-            chosenElement.name,
-            chosenElement.wasTakenFrom,
-            placedTo.name);
 
-        eventHandler.emitEvent(EVENT.PLACED, {
+        if (!isTraining) {
+            katonaRules.countMove(
+                chosenElement.name,
+                chosenElement.wasTakenFrom,
+                placedTo.name);
+        }
+
+        const reportData = {
             placedTo: placedTo.name,
             placeRT: singleClick.getData().RT,
             timeFromStart: globalClock.getTime(),
             timeSolving: mainClock.getTime(),
-        });
+        };
+        if (isTraining) {
+            reportData["isTraining"] = isTraining;
+        }
+        eventHandler.emitEvent(EVENT.PLACED, reportData);
     };
 
 
@@ -553,12 +616,12 @@ async function eventHandlersInit() {
 
     eventHandler.registerHandler({
         event: EVENT.CLICK,
-        handler: isResetButtonClick,
+        handler: isMainResetButtonClick,
     });
 
     eventHandler.registerHandler({
         event: EVENT.RESET,
-        handler: resetToDefaultState,
+        handler: resetFiveSquaresToDefaultState,
     });
 
     registerChoosingHandler();
@@ -570,7 +633,6 @@ async function eventHandlersInit() {
         EVENT.PROBE_ANSWER,
         EVENT.IMPASSE,
         EVENT.INSTRUCTION_READING,
-        EVENT.TRAINING_PROBE_ANSWER,
     ];
 
     eventsToSave.forEach((event) => eventHandler.registerHandler({
@@ -582,11 +644,6 @@ async function eventHandlersInit() {
             });
         }
     }));
-
-    // eventHandler.registerHandler({
-    //     event: EVENT.CLICK,
-    //     handler: console.log,
-    // });
 
     // start interval events
     setInterval(() =>
@@ -603,7 +660,7 @@ function mainRoutineBegin(firstStart) {
     return async function() {
         //------Prepare to start Routine 'trial'-------
         fiveSquaresGrid.status = PsychoJS.Status.NOT_STARTED;
-        resetButton.status = PsychoJS.Status.NOT_STARTED;
+        mainResetButton.status = PsychoJS.Status.NOT_STARTED;
         instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
 
         instructionTextStim.text = INSTRUCTIONS.fiveSquare;
@@ -640,10 +697,10 @@ function mainRoutineEachFrame() {
             fiveSquaresGrid.status = PsychoJS.Status.STARTED;
         }
 
-        if (resetButton.status === PsychoJS.Status.NOT_STARTED && t >=
+        if (mainResetButton.status === PsychoJS.Status.NOT_STARTED && t >=
             TIME_BEFORE_START) {
-            resetButton.setAutoDraw(true);
-            resetButton.status = PsychoJS.Status.STARTED;
+            mainResetButton.setAutoDraw(true);
+            mainResetButton.status = PsychoJS.Status.STARTED;
         }
 
         if (instructionTextStim.status === PsychoJS.Status.NOT_STARTED) {
@@ -656,7 +713,11 @@ function mainRoutineEachFrame() {
         }
 
         if (singleClick.isInitialized && singleClick.isSingleClick()) {
-            eventHandler.emitEvent(EVENT.CLICK, singleClick);
+            eventHandler.emitEvent(EVENT.CLICK, {
+                clicker: singleClick,
+                grid: fiveSquaresGrid,
+                routineClock: mainClock,
+            });
         }
 
 
@@ -687,12 +748,12 @@ function mainRoutineEnd() {
     return async function() {
         // the Routine "main" was not non-slip safe, so reset the non-slip timer
         fiveSquaresGrid.status = PsychoJS.Status.NOT_STARTED;
-        resetButton.status = PsychoJS.Status.NOT_STARTED;
+        mainResetButton.status = PsychoJS.Status.NOT_STARTED;
 
         // TODO: check all states and make sure Katona is stopped during probe
         singleClick.stop();
         fiveSquaresGrid.setAutoDraw(false);
-        resetButton.setAutoDraw(false);
+        mainResetButton.setAutoDraw(false);
         instructionTextStim.setAutoDraw(false);
 
         instructionTextStim.status = PsychoJS.Status.FINISHED;
@@ -734,7 +795,8 @@ function probesTraining(probeInstruction) {
 
         if (trainingKeyboard.isSendInput()) {
             const pressInfo = trainingKeyboard.getData();
-            eventHandler.emitEvent(EVENT.TRAINING_PROBE_ANSWER, {
+            eventHandler.emitEvent(EVENT.PROBE_ANSWER, {
+                isTraining: true,
                 probeType: PROBE_TYPE,
                 probeName: trainingProbe.getProbeName(),
                 probeRT: pressInfo.RT,
@@ -756,6 +818,141 @@ function probesTraining(probeInstruction) {
             instructionTextStim.pos = [0, 0];
             instructionTextStim.status = PsychoJS.Status.FINISHED;
             instructionTextStim.setAutoDraw(false);
+            return Scheduler.Event.NEXT;
+        }
+
+        return Scheduler.Event.FLIP_REPEAT;
+    };
+}
+
+function trainingOnGrid(
+    movableElementsIndexes,
+    targetElementsIndexes,
+    isTrainingRoutineFinished,
+    instructionName,
+    instructions) {
+    const TIME_BEFORE_START = 0.1;
+    const gridUnitWidth = 0.01;
+    const gridUnitHeight = 0.07;
+
+    // calculation of starting position to place grid in the center of the screen
+    const startPoint = gridUnitWidth * 1.5 + gridUnitHeight * 1.5;
+    const traingGridInfo = new Grid({
+        startPoint: [-startPoint, startPoint],
+        gridSquares: 3,
+        gridUnitLength: gridUnitHeight,
+        gridUnitWidth: gridUnitWidth,
+    });
+
+    const trainingGrid = new VisualGrid({
+        name: "training",
+        window: psychoJS.window,
+        grid: traingGridInfo,
+        gridColor: 'lightgrey',
+        movableElementColor: 'black',
+        movableElementsRelativeIndexes: movableElementsIndexes,
+    });
+    trainingGrid.status = PsychoJS.Status.NOT_STARTED;
+
+    targetElementsIndexes.forEach((targetIndex) => {
+        trainingGrid.setGridElementColor(targetIndex, new util.Color("green"));
+    });
+
+    const trainingGridBoundingBox = trainingGrid.getBoundingBox();
+    const trainingMiddleGridPosition = [
+        trainingGridBoundingBox[1][0] + gridUnitHeight * 2,
+        (trainingGridBoundingBox[1][1] + trainingGridBoundingBox[2][1]) / 2,
+    ];
+    const trainingResetButton = new visual.ButtonStim({
+        win: psychoJS.window,
+        text: 'Заново',
+        fillColor: new util.Color('#011B56'),
+        pos: trainingMiddleGridPosition,
+        size: [0.185, 0.07],
+        padding: 0,
+        letterHeight: 0.05,
+    });
+    trainingResetButton.status = PsychoJS.Status.CONFIGURED;
+
+    const trainingOnGridClock = new util.Clock();
+    let trainingFinished = instructionName !== "thirdControlsTraining";
+    let placedCorrectly = false;
+    let firstStart = true;
+    let trainingT = 0;
+    return () => {
+        if (firstStart) {
+            firstStart = false;
+            instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
+            if (instructionName === "thirdControlsTraining") {
+                trainingResetButton.status = PsychoJS.Status.NOT_STARTED;
+                eventHandler.registerHandler({
+                    event: EVENT.CLICK,
+                    handler: () => {
+                        if (
+                            !trainingResetButton.isClicked
+                            || trainingResetButton.status === PsychoJS.Status.NOT_STARTED
+                        ) return;
+
+                        setTimeout(() => trainingFinished = true, 3000);
+                        trainingGrid.returnToDefault();
+                        eventHandler.emitEvent(EVENT.RESET, {
+                            isTraining: true,
+                            resetRT: singleClick.getData().RT,
+                            timeFromStart: globalClock.getTime(),
+                            timeSolving: trainingOnGridClock.getTime(),
+                        });
+                    },
+                    removeAfter: EVENT.RESET,
+                });
+            }
+
+            instructionTextStim.text = instructions[instructionName];
+            instructionTextStim.pos = [0, 0.3];
+
+            trainingOnGridClock.reset();
+        }
+
+        trainingT = trainingOnGridClock.getTime();
+
+        if (trainingGrid.status === PsychoJS.Status.NOT_STARTED) {
+            trainingGrid.status = PsychoJS.Status.STARTED;
+            trainingGrid.setAutoDraw(true);
+        }
+
+        if (instructionTextStim.status === PsychoJS.Status.NOT_STARTED) {
+            instructionTextStim.status = PsychoJS.Status.STARTED;
+            instructionTextStim.setAutoDraw(true);
+        }
+
+        if (trainingResetButton.status === PsychoJS.Status.NOT_STARTED && placedCorrectly) {
+            trainingResetButton.status = PsychoJS.Status.STARTED;
+            trainingResetButton.setAutoDraw(true);
+        }
+
+        if (!singleClick.isInitialized && trainingT >= TIME_BEFORE_START) {
+            singleClick.initialize();
+        }
+
+        if (singleClick.isInitialized && singleClick.isSingleClick()) {
+            eventHandler.emitEvent(EVENT.CLICK, {
+                isTraining: true,
+                clicker: singleClick,
+                grid: trainingGrid,
+                routineClock: trainingOnGridClock,
+            });
+        }
+
+
+        placedCorrectly = isTrainingRoutineFinished(trainingGrid, targetElementsIndexes);
+        if (placedCorrectly && trainingFinished) {
+            instructionTextStim.text = "";
+            instructionTextStim.pos = [0, 0];
+
+            instructionTextStim.setAutoDraw(false);
+            trainingGrid.returnToDefault();
+            trainingGrid.setAutoDraw(false);
+            trainingResetButton.setAutoDraw(false);
+            singleClick.stop();
             return Scheduler.Event.NEXT;
         }
 

@@ -24,8 +24,8 @@ const { EVENT } = eventHandler;
 // Development constants
 const DOWNLOAD_RESOURCES = true;
 const SHOW_IMPASSE_PROBES = DOWNLOAD_RESOURCES && true;
-const SHOW_SINGLE_INSTRUCTION = true;
-const GRID_TRAINING = true;
+const SHOW_SINGLE_INSTRUCTION = false;
+const GRID_TRAINING = false;
 const PROBE_TRAINING = true;
 // TODO: определить длительность прерывания
 const IMPASSE_INTERRUPTION_TIME = 15;
@@ -239,7 +239,7 @@ scheduleConditionally(flowScheduler,
     showSingleInstruction(`${PROBE_TYPE}Full`, INSTRUCTIONS),
     SHOW_SINGLE_INSTRUCTION);
 // probe traing
-const addProbeTrainingTrial = scheduleConditionally(flowScheduler,
+const probeTrainingScheduler = scheduleConditionally(flowScheduler,
     probesTraining(INSTRUCTIONS[`${PROBE_TYPE}Short`]),
     PROBE_TRAINING);
 // instructions after training with probe
@@ -328,7 +328,7 @@ function scheduleConditionally(scheduler, routine, condition) {
     routineScheduler.add(routine);
     if (condition) {
         scheduler.add(routineScheduler);
-        return () => routineScheduler.add(routine);
+        return routineScheduler;
     }
 
 }
@@ -782,6 +782,7 @@ function probesTraining(probeInstruction) {
         }
 
         t = trainingProbesClock.getTime();
+        // console.log(t);
 
         if (!trainingProbe.isStarted) {
             trainingProbe.setAutoDraw(true, t);
@@ -810,7 +811,7 @@ function probesTraining(probeInstruction) {
             trainingProbe.stop();
             trainingProbe.nextProbe();
             // go to next probe if training is not finished
-            addProbeTrainingTrial();
+            probeTrainingScheduler.add(probesTraining(INSTRUCTIONS[`${PROBE_TYPE}Short`]));
             n += 1;
             return Scheduler.Event.NEXT;
         }

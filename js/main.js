@@ -24,8 +24,8 @@ const { EVENT } = eventHandler;
 // Development constants
 const DOWNLOAD_RESOURCES = true;
 const SHOW_IMPASSE_PROBES = DOWNLOAD_RESOURCES && true;
-const SHOW_SINGLE_INSTRUCTION = false;
-const GRID_TRAINING = false;
+const SHOW_SINGLE_INSTRUCTION = true;
+const GRID_TRAINING = true;
 const PROBE_TRAINING = true;
 // TODO: определить длительность прерывания
 const IMPASSE_INTERRUPTION_TIME = 15;
@@ -240,7 +240,7 @@ scheduleConditionally(flowScheduler,
     SHOW_SINGLE_INSTRUCTION);
 // probe traing
 const probeTrainingScheduler = scheduleConditionally(flowScheduler,
-    probesTraining(INSTRUCTIONS[`${PROBE_TYPE}Short`]),
+    probesTraining(INSTRUCTIONS[`${PROBE_TYPE}Short`], 0),
     PROBE_TRAINING);
 // instructions after training with probe
 scheduleConditionally(flowScheduler,
@@ -766,8 +766,7 @@ function mainRoutineEnd() {
     };
 }
 
-function probesTraining(probeInstruction) {
-    let n = 0;
+function probesTraining(probeInstruction, nTrial) {
     let areProbesPrepared = false;
     return async () => {
         if (!areProbesPrepared) {
@@ -782,7 +781,6 @@ function probesTraining(probeInstruction) {
         }
 
         t = trainingProbesClock.getTime();
-        // console.log(t);
 
         if (!trainingProbe.isStarted) {
             trainingProbe.setAutoDraw(true, t);
@@ -811,12 +809,11 @@ function probesTraining(probeInstruction) {
             trainingProbe.stop();
             trainingProbe.nextProbe();
             // go to next probe if training is not finished
-            probeTrainingScheduler.add(probesTraining(INSTRUCTIONS[`${PROBE_TYPE}Short`]));
-            n += 1;
+            probeTrainingScheduler.add(probesTraining(INSTRUCTIONS[`${PROBE_TYPE}Short`], nTrial + 1));
             return Scheduler.Event.NEXT;
         }
 
-        if (n === MINIMAL_PROBE_TRAINING_TRAILS) {
+        if (nTrial === MINIMAL_PROBE_TRAINING_TRAILS) {
             trainingProbe.stop();
             instructionTextStim.pos = [0, 0];
             instructionTextStim.status = PsychoJS.Status.FINISHED;

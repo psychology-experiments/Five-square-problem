@@ -161,7 +161,7 @@ if (DOWNLOAD_RESOURCES) {
         logoUrl: './materials/favicon.ico',
         // TODO: add text attribute
         dictionary: expInfo,
-        title: expName
+        title: 'Пять квадратов'
     }));
 
     // Protect experiment from start before all files were loaded

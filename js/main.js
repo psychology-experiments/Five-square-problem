@@ -173,7 +173,7 @@ if (DOWNLOAD_RESOURCES) {
         ageField.min = '14';
         ageField.max = '99';
         clearInterval(castAgeFieldFromTextToNumber);
-    }, 100)
+    }, 100);
 
     // Protect experiment from start before all files were loaded
     const waitResourceDownloadingID = setInterval(() => {
@@ -196,6 +196,10 @@ if (DOWNLOAD_RESOURCES) {
 
     const dialogCancelScheduler = new Scheduler(psychoJS);
     psychoJS.scheduleCondition(function() {
+        if (PROBE_CAN_BE_CHOSEN) {
+            PROBE_TYPE = expInfo.probeType;
+        }
+
         return (psychoJS.gui.dialogComponent.button === 'OK');
     }, flowScheduler, dialogCancelScheduler);
 } else {
@@ -803,7 +807,7 @@ function probesTraining(probeInstruction, nTrial) {
             trainingProbe.nextProbe();
             trainingProbesClock.reset();
 
-            instructionTextStim.text = probeInstruction;
+            instructionTextStim.text = INSTRUCTIONS[`${PROBE_TYPE}Short`];
             instructionTextStim.pos = [0, 0.2];
             instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
         }
@@ -1057,7 +1061,13 @@ function probesDuringImpasse() {
 // }
 
 function showSingleInstruction(instructionName, instructions) {
+    let isProbeManuallyChosen = PROBE_CAN_BE_CHOSEN;
     return async () => {
+        if (isProbeManuallyChosen) {
+            instructionName = `${PROBE_TYPE}Full`;
+            isProbeManuallyChosen = false;
+        }
+
         t = instructionClock.getTime();
 
         if (instructionTextStim.status !== PsychoJS.Status.STARTED) {

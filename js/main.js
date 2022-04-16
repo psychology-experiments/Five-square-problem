@@ -129,6 +129,12 @@ const PROBES_DATA = {
             'left',
             'right'
         ]
+    },
+    'ControlProbe': {
+        'probes': [
+            'materials/Probes/Control/dot.png',
+        ],
+        'answers': null
     }
 };
 
@@ -808,7 +814,7 @@ function probesTraining(probeInstruction, nTrial) {
             trainingProbesClock.reset();
 
             instructionTextStim.text = INSTRUCTIONS[`${PROBE_TYPE}Short`];
-            instructionTextStim.pos = [0, 0.2];
+            instructionTextStim.pos = PROBE_TYPE !== "ControlProbe" ? [0, 0.2] : [0, 0.46];
             instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
         }
 
@@ -1063,7 +1069,7 @@ function probesDuringImpasse() {
 function showSingleInstruction(instructionName, instructions) {
     let isProbeManuallyChosen = PROBE_CAN_BE_CHOSEN;
     return async () => {
-        if (isProbeManuallyChosen) {
+        if (isProbeManuallyChosen && (instructionName.includes("Full") || instructionName.includes("Short"))) {
             instructionName = `${PROBE_TYPE}Full`;
             isProbeManuallyChosen = false;
         }

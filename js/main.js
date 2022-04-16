@@ -657,6 +657,7 @@ async function eventHandlersInit() {
 
 let t;
 let frameN;
+let lastImpasseTime;
 
 function mainRoutineBegin(firstStart) {
     return async function() {
@@ -673,6 +674,9 @@ function mainRoutineBegin(firstStart) {
             mainClock.reset(); // clock
             movesObserver.prepareToStart();
             frameN = -1;
+        }
+        else {
+            mainClock.reset(-lastImpasseTime);
         }
         // test.setAutoDraw(true);
         // test.forEach((tt) => tt.setAutoDraw(true));
@@ -736,6 +740,7 @@ function mainRoutineEachFrame() {
         }
 
         if (SHOW_IMPASSE_PROBES && movesObserver.isImpasse()) {
+            lastImpasseTime = t;
             eventHandler.emitEvent(EVENT.IMPASSE, {});
             return Scheduler.Event.NEXT;
         }

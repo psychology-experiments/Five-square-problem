@@ -266,7 +266,7 @@ class ProbeView {
 }
 
 
-const existingProbes = {
+export const existingProbes = {
     UpdateProbe,
     ShiftProbe,
     InhibitionProbe,

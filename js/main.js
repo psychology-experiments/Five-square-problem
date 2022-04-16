@@ -12,7 +12,7 @@ import {
     AdditionalTrialData
 } from './inputprocessing/inputprocessing.js';
 import { FiveSquareKatona } from './katona/katona.js';
-import { createProbe } from './probes/probe.js';
+import { createProbe, existingProbes } from './probes/probe.js';
 import { instructions as INSTRUCTIONS } from "./instructions/instructions.js";
 
 
@@ -22,22 +22,35 @@ const { Scheduler } = util;
 const { EVENT } = eventHandler;
 
 // Development constants
+const PROBE_CAN_BE_CHOSEN = true;
 const DOWNLOAD_RESOURCES = true;
 const SHOW_IMPASSE_PROBES = DOWNLOAD_RESOURCES && true;
 const SHOW_SINGLE_INSTRUCTION = true;
 const GRID_TRAINING = true;
 const PROBE_TRAINING = true;
+// Experiment constants
+const PROBE_TYPES = Object.keys(existingProbes);
+let PROBE_TYPE;
 // TODO: определить длительность прерывания
 const IMPASSE_INTERRUPTION_TIME = 15;
 const MINIMAL_THRESHOLD_TIME = 15;
 // TODO: make random or arbitrary choice of probes at experiment start
-const PROBE_TYPE = 'ShiftProbe';
 const MINIMAL_PROBE_TRAINING_TRAILS = 30;
 
 
 // store info about the experiment session:
 const expName = 'Five square problem';
-const expInfo = { 'participant': '' };
+const expInfo = {
+    испытуемый: '',
+    пол: ['Ж', 'М'],
+    возраст: '',
+};
+
+if (PROBE_CAN_BE_CHOSEN) {
+    expInfo.probeType = PROBE_TYPES;
+} else {
+    PROBE_TYPE = PROBE_TYPES[util.randint(PROBE_TYPES.length)];
+}
 
 // experiment constants
 const MOVABLE_STICKS_INDEXES = [
@@ -121,7 +134,7 @@ const PROBES_DATA = {
 
 const PROBES_TO_DOWNLOAD = [];
 for (const probeName in PROBES_DATA) {
-    if (probeName !== PROBE_TYPE) continue;
+    if (probeName !== PROBE_TYPE && !PROBE_CAN_BE_CHOSEN) continue;
     for (const stimulusFP of PROBES_DATA[probeName].probes) {
         PROBES_TO_DOWNLOAD.push({ name: stimulusFP, path: stimulusFP });
     }
@@ -674,8 +687,7 @@ function mainRoutineBegin(firstStart) {
             mainClock.reset(); // clock
             movesObserver.prepareToStart();
             frameN = -1;
-        }
-        else {
+        } else {
             mainClock.reset(-lastImpasseTime);
         }
         // test.setAutoDraw(true);

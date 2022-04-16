@@ -164,6 +164,17 @@ if (DOWNLOAD_RESOURCES) {
         title: 'Пять квадратов'
     }));
 
+    // Cast age field to number input
+    const castAgeFieldFromTextToNumber = setInterval(() => {
+        const ageField = document.querySelector("input[name='возраст']");
+        if (ageField === null) return;
+
+        ageField.type = 'number';
+        ageField.min = '14';
+        ageField.max = '99';
+        clearInterval(castAgeFieldFromTextToNumber);
+    }, 100)
+
     // Protect experiment from start before all files were loaded
     const waitResourceDownloadingID = setInterval(() => {
         const okButton = document.getElementById('buttonOk');

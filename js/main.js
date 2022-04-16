@@ -26,7 +26,7 @@ const PROBE_CAN_BE_CHOSEN = true;
 const DOWNLOAD_RESOURCES = true;
 const SHOW_IMPASSE_PROBES = DOWNLOAD_RESOURCES && true;
 const SHOW_SINGLE_INSTRUCTION = true;
-const GRID_TRAINING = true;
+const GRID_TRAINING = false;
 const PROBE_TRAINING = true;
 // Experiment constants
 const PROBE_TYPES = Object.keys(existingProbes);

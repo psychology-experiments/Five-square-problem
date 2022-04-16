@@ -1,4 +1,4 @@
-import { visual } from '../../lib/psychojs-2021.2.3.developer.js';
+import { util, visual } from '../../lib/psychojs-2021.2.3.developer.js';
 
 import { cycle } from '../katona/general.js';
 
@@ -228,6 +228,46 @@ class InhibitionProbe extends BaseProbe {
     }
 }
 
+class ControlProbe extends BaseProbe {
+    constructor(probes, answers, probeView, startTime) {
+        super(probeView, startTime);
+        this._probePosition = null;
+
+        const windowSize = probeView._windowSize;
+        this._windowWidth = windowSize[0];
+        this._windowHeight = windowSize[1];
+        this._shiftX = this._windowWidth / 2;
+        this._shiftY = this._windowHeight / 2;
+    }
+
+    _roundFloat(floatNumber, decimalPlaces) {
+        const roundTo = Math.pow(10, decimalPlaces);
+        return Math.round((floatNumber + Number.EPSILON) * roundTo) / roundTo;
+    }
+
+    nextProbe() {
+        // multiply by 0.6 to enshure that probe is inside screen
+        const moveFromWindowBorder = 0.6;
+        const x = (Math.random() * this._windowWidth - this._shiftX) * moveFromWindowBorder;
+        const y = (Math.random() * this._windowHeight - this._shiftY) * moveFromWindowBorder;
+        this._probePosition = [this._roundFloat(x, 2), this._roundFloat(y, 2)];
+        this._probeView.setNextProbe(0);
+        this._probeView.position = this._probePosition;
+    }
+
+    getProbeName() {
+        return this._probePosition;
+    }
+
+    getPressCorrectness(pressedKeyName) {
+        return true;
+    }
+
+    prepareForNewStart() {
+        this._probePosition = null;
+    }
+}
+
 
 class ProbeView {
     constructor({
@@ -236,6 +276,7 @@ class ProbeView {
         this._position = position;
         this._visualProbes = [];
         this._currentProbe = null;
+        this._windowSize = util.to_height(window.size, 'pix', window);
 
         for (const probeFP of probeFPs) {
             const probe = new visual.ImageStim({
@@ -267,6 +308,7 @@ class ProbeView {
 
 
 export const existingProbes = {
+    ControlProbe,
     UpdateProbe,
     ShiftProbe,
     InhibitionProbe,

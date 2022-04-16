@@ -45,12 +45,12 @@ const afterProbeTraining = `
 Теперь Вы готовы решать задачу. Решайте ту задачу, которая перед Вами на экране. 
 Ещё раз напомним главное –  по возможности, показывайте нам и программе каждый свой ход.\n
 Жмите ПРОБЕЛ и приступайте :)`;
-const controlProbeFull = `
-Сейчас на экране будут появляться точки. 
+const ControlProbeFull = `
+Сейчас на экране будет появляться точка. 
 Ваша задача щёлкать по ним левой клавишей мыши как можно быстрее
 после их появления на экране.\n
 Если Вы готовы, нажмите ПРОБЕЛ`;
-const controlProbeShort = `
+const ControlProbeShort = `
 Щёлкайте левой клавишей мыши по точкам как можно быстрее после их появления`;
 const ShiftProbeFull = `
 Сейчас на экране Вам будут показаны различные фигуры
@@ -102,8 +102,8 @@ const rawInstructions = {
     thirdControlsTraining,
     beforeProbeTraining,
     afterProbeTraining,
-    controlProbeFull,
-    controlProbeShort,
+    ControlProbeFull,
+    ControlProbeShort,
     ShiftProbeFull,
     ShiftProbeShort,
     InhibitionProbeFull,

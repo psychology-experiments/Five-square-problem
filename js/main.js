@@ -14,6 +14,7 @@ import {
 import { FiveSquareKatona } from './katona/katona.js';
 import { createProbe, existingProbes } from './probes/probe.js';
 import { instructions as INSTRUCTIONS } from "./instructions/instructions.js";
+import { SingleClickMouse } from "./katona/presenter/logic/movement.js";
 
 
 const { PsychoJS } = core;
@@ -399,7 +400,7 @@ let probe;
 let probeKeyboard;
 let movesObserver;
 let trainingProbe;
-let trainingKeyboard;
+let trainingProbeInput;
 let instructionExitKeyboard;
 let instructionTextStim;
 
@@ -488,10 +489,15 @@ async function experimentInit() {
             position: [0.0, -0.25],
             startTime: 0.1,
         });
-        trainingKeyboard = new SingleSymbolKeyboard({
-            psychoJS: psychoJS,
-            additionalTrialData: new AdditionalTrialData({})
-        });
+        trainingProbeInput = PROBE_TYPE !== "ControlProbe" ?
+            new SingleSymbolKeyboard({
+                psychoJS: psychoJS,
+                additionalTrialData: new AdditionalTrialData({})
+            }) :
+            new SingleClickMouse({
+                window: psychoJS.window,
+                buttonToCheck: 'left'
+            });
     }
 
     instructionTextStim = new visual.TextStim({
@@ -804,6 +810,10 @@ function mainRoutineEnd() {
     };
 }
 
+function allProbeTraingConditionsMet(trainingProbe) {
+    return PROBE_TYPE !== "ControlProbe" || trainingProbeInput.isPressedIn(trainingProbe);
+}
+
 function probesTraining(probeInstruction, nTrial) {
     let areProbesPrepared = false;
     return async () => {
@@ -828,12 +838,12 @@ function probesTraining(probeInstruction, nTrial) {
             instructionTextStim.setAutoDraw(true);
         }
 
-        if (!trainingKeyboard.isInitialized && trainingProbe.isStarted) {
-            trainingKeyboard.initialize({ keysToWatch: ['left', 'right'] });
+        if (!trainingProbeInput.isInitialized && trainingProbe.isStarted) {
+            trainingProbeInput.initialize({ keysToWatch: ['left', 'right'] });
         }
 
-        if (trainingKeyboard.isSendInput()) {
-            const pressInfo = trainingKeyboard.getData();
+        if (trainingProbeInput.isSendInput() && allProbeTraingConditionsMet(trainingProbe)) {
+            const pressInfo = trainingProbeInput.getData();
             eventHandler.emitEvent(EVENT.PROBE_ANSWER, {
                 isTraining: true,
                 probeType: PROBE_TYPE,
@@ -843,7 +853,7 @@ function probesTraining(probeInstruction, nTrial) {
                 isCorrect: trainingProbe.getPressCorrectness(pressInfo.keyName) ? 1 : 0,
                 timeFromStart: globalClock.getTime(),
             });
-            trainingKeyboard.stop();
+            trainingProbeInput.stop();
             trainingProbe.stop();
             trainingProbe.nextProbe();
             // go to next probe if training is not finished

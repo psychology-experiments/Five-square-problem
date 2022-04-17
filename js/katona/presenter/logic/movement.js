@@ -9,6 +9,7 @@ export class SingleClickMouse {
 
         const buttons = { left: 0, center: 1, right: 2 };
         this._checkButton = buttons[buttonToCheck];
+        this._buttonName = buttonToCheck;
 
         this._mouse = new core.Mouse({ win: window });
         this._mouse.leftButtonClock = new util.Clock();
@@ -44,6 +45,12 @@ export class SingleClickMouse {
         return this._mouse.isPressedIn(shape, this._checkButton);
     }
 
+    isSendInput() {
+        if (!this._isInitilized) return;
+
+        return this.isSingleClick();
+    }
+
     isSingleClick() {
         let click = this._getButtonPress();
 
@@ -72,6 +79,7 @@ export class SingleClickMouse {
     getData() {
         return {
             mouse: this._mouse,
+            keyName: this._buttonName,
             RT: this._timePressed,
         };
     }

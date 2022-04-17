@@ -53,6 +53,10 @@ class BaseProbe {
         this._isStarted = false;
     }
 
+    contains(object, units) {
+        return this._probeView.contains(object, units);
+    }
+
     nextProbe() {
         throw new Error('Not Implemented');
     }
@@ -284,6 +288,10 @@ class ProbeView {
             });
             this._visualProbes.push(probe);
         }
+    }
+
+    contains(object, units) {
+        return this._currentProbe.contains(object, units);
     }
 
     get position() {

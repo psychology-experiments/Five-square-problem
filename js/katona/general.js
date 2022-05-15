@@ -83,14 +83,11 @@ export class ResizeWorkAround {
         this._handler = null;
     }
 
-    _debounceIfResized(f, ms) {
-        let isCooldown = false;
+    _handleWhenStabialized(f, ms) {
+        let startHandlerId = null;
         return () => {
-            if (isCooldown) return;
-
-            isCooldown = true;
-            f();
-            setTimeout(() => isCooldown = false, ms);
+            clearTimeout(startHandlerId);
+            startHandlerId = setTimeout(f, ms);
         };
     }
 
@@ -101,7 +98,7 @@ export class ResizeWorkAround {
             );
         }
 
-        this._handler = this._debounceIfResized(handler, 50);
+        this._handler = this._handleWhenStabialized(handler, 500);
 
         window.addEventListener(
             "resize",

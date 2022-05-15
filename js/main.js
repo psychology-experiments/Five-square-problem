@@ -1049,7 +1049,10 @@ function probesDuringImpasse() {
 
         if (instructionTextStim.status === PsychoJS.Status.NOT_STARTED) {
             instructionTextStim.pos = [0, 0.4];
-            resizeWorkAround.addHandler(() => instructionTextStim.adjustWrapWidthOnResize());
+            resizeWorkAround.addHandler(() => {
+                probe.adjustOnResize();
+                instructionTextStim.adjustWrapWidthOnResize();
+            });
             instructionTextStim.setAutoDraw(true);
         }
 

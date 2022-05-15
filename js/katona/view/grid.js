@@ -47,7 +47,8 @@ class GridElement extends visual.Rect {
     setAutoDraw(toShow) {
         // Calculate positions AFTER window became FULL SCREEN
         // otherwise PsychoJS calculate it wrong
-        if (this._verticesPositions === null && toShow) {
+        // but recalculate position before every autoDraw command because window resize creates bugs with positions
+        if (toShow) {
             this._verticesPositions = this._getVerticesPositionPixels(
                 this._trueShape);
         }

@@ -51,6 +51,25 @@ class BaseProbe {
         this._probeView = probeView;
         this._startTime = startTime;
         this._isStarted = false;
+
+        this._probePosition = probeView.position;
+        const windowSize = this._probeView.windowSize;
+        this._windowWidth = windowSize[0];
+        this._windowHeight = windowSize[1];
+    }
+
+    adjustOnResize() {
+        // const previousWidth = this._windowWidth;
+        // const previousHeight = this._windowHeight;
+        //
+        // const windowSize = this._probeView.windowSize;
+        // this._windowWidth = windowSize[0];
+        // this._windowHeight = windowSize[1];
+        //
+        // const widthRatio = this._windowWidth / previousWidth;
+        // const heightRatio = this._windowHeight / previousHeight;
+        // this._probePosition = [this._probePosition[0] * widthRatio, this._probePosition[1] * heightRatio];
+        // this._probeView.position = this._probePosition;
     }
 
     contains(object, units) {
@@ -237,9 +256,27 @@ class ControlProbe extends BaseProbe {
         super(probeView, startTime);
         this._probePosition = null;
 
-        const windowSize = probeView._windowSize;
+        const windowSize = probeView.windowSize;
         this._windowWidth = windowSize[0];
         this._windowHeight = windowSize[1];
+        this._shiftX = this._windowWidth / 2;
+        this._shiftY = this._windowHeight / 2;
+    }
+
+    adjustOnResize() {
+        // super.adjustOnResize();
+        const previousWidth = this._windowWidth;
+        const previousHeight = this._windowHeight;
+
+        const windowSize = this._probeView.windowSize;
+        this._windowWidth = windowSize[0];
+        this._windowHeight = windowSize[1];
+
+        const widthRatio = this._windowWidth / previousWidth;
+        const heightRatio = this._windowHeight / previousHeight;
+        this._probePosition = [this._probePosition[0] * widthRatio, this._probePosition[1] * heightRatio];
+        this._probeView.position = this._probePosition;
+
         this._shiftX = this._windowWidth / 2;
         this._shiftY = this._windowHeight / 2;
     }
@@ -277,10 +314,10 @@ class ProbeView {
     constructor({
         window, probeFPs, position,
     }) {
+        this._window = window;
         this._position = position;
         this._visualProbes = [];
         this._currentProbe = null;
-        this._windowSize = util.to_height(window.size, 'pix', window);
 
         for (const probeFP of probeFPs) {
             const probe = new visual.ImageStim({
@@ -288,6 +325,10 @@ class ProbeView {
             });
             this._visualProbes.push(probe);
         }
+    }
+
+    get windowSize() {
+        return util.to_height(this._window.size, 'pix', this._window);
     }
 
     contains(object, units) {
@@ -300,6 +341,7 @@ class ProbeView {
 
     set position(coordinates) {
         for (const probe of this._visualProbes) {
+            console.log("SETTING COORDS:", {P: probe.pos.toString(), C: coordinates.toString()});
             probe.pos = coordinates;
         }
         this._position = coordinates;

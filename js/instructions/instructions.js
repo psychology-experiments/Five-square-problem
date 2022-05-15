@@ -94,6 +94,14 @@ const fiveSquare = `
 Палочки на экране организуют фигуру из пяти квадратов. 
 Ваша задача – переместить ровно три палочки,\n
 чтобы получить четыре квадрата одинакового размера.`
+const impasseWarning = `
+Приготовьтесь! Сейчас будет переход к дополнительному заданию.\n
+Через
+`
+const katonaWarning = `
+Приготовьтесь! Сейчас будет переход к задаче «5 квадратов».\n
+Через
+`
 
 const rawInstructions = {
     start,
@@ -111,6 +119,8 @@ const rawInstructions = {
     UpdateProbeFull,
     UpdateProbeShort,
     fiveSquare,
+    impasseWarning,
+    katonaWarning
 };
 
 const instructions = {};

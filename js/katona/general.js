@@ -21,7 +21,7 @@ export const multiplyMatrices = (m1, m2) => {
  * @public
  * @param {Iterable<T>} iterable - any iterable to cycle through
  */
-export function * cycle(iterable) {
+export function* cycle(iterable) {
     const saved = [];
     for (const element of iterable) {
         yield element;
@@ -76,4 +76,48 @@ export function sd(x, xMean) {
         x.map(subtractMeanAndPow).reduce(add) / sampleLength,
         0.5
     );
+}
+
+export class ResizeWorkAround {
+    constructor() {
+        this._handler = null;
+    }
+
+    _debounceIfResized(f, ms) {
+        let isCooldown = false;
+        return () => {
+            if (isCooldown) return;
+
+            isCooldown = true;
+            f();
+            setTimeout(() => isCooldown = false, ms);
+        };
+    }
+
+    addHandler(handler) {
+        if (this._handler !== null) {
+            throw new Error(
+                `There is must be only one handler registered! But has already this handler ${this._handler}`
+            );
+        }
+
+        this._handler = this._debounceIfResized(handler, 50);
+
+        window.addEventListener(
+            "resize",
+            this._handler,
+        );
+    }
+
+    removeLastHandler() {
+        if (this._handler === null) {
+            throw new Error('There is no handler to remove');
+        }
+
+        window.removeEventListener(
+            "resize",
+            this._handler,
+        );
+        this._handler = null;
+    }
 }

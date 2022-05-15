@@ -106,6 +106,7 @@ class GridElement extends visual.Rect {
 
         const movableElement = this._occupiedBy;
         movableElement.wasTakenFrom = this.name;
+        movableElement._currentlyPlacedOn = null;
         this._occupiedBy = null;
         return movableElement;
     }
@@ -122,6 +123,7 @@ class GridElement extends visual.Rect {
         movableElement.position = this.pos;
         movableElement.orientation = this.ori;
         movableElement._wasPlacedOn = this;
+        movableElement._currentlyPlacedOn = this;
         this._occupiedBy = movableElement;
     }
 
@@ -162,6 +164,7 @@ class SingleMovableElement {
         this.name = `[${name}]`;
         this.wasTakenFrom = defaultGridElement.name;
         this._wasPlacedOn = defaultGridElement;
+        this._currentlyPlacedOn = defaultGridElement;
         this._defaultGridElement = defaultGridElement;
         this._defaultGridElement.addDefaultMovableElement(this);
     }
@@ -191,7 +194,7 @@ class SingleMovableElement {
     }
 
     returnToDefault() {
-        if (this._wasPlacedOn !== this._defaultGridElement) {
+        if (this._wasPlacedOn !== this._defaultGridElement && this._currentlyPlacedOn !== null) {
             // return to default grid element that did not have movable element
             this._wasPlacedOn.giveMovableElement();
         }

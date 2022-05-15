@@ -1048,7 +1048,8 @@ function probesDuringImpasse() {
         }
 
         if (instructionTextStim.status === PsychoJS.Status.NOT_STARTED) {
-            instructionTextStim.pos = [0, 0.4];
+            if (PROBE_TYPE === "ControlProbe") instructionTextStim.pos = [0, 0.4];
+
             resizeWorkAround.addHandler(() => {
                 probe.adjustOnResize();
                 instructionTextStim.adjustWrapWidthOnResize();

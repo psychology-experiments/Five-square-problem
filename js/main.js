@@ -1071,7 +1071,6 @@ function probesDuringImpasse() {
             probe.stop();
             // go to next probe if impasse intervention is not finished
             flowScheduler.add(probesDuringImpasse());
-            resizeWorkAround.removeLastHandler();
             return Scheduler.Event.NEXT;
         }
 

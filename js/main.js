@@ -15,6 +15,7 @@ import { FiveSquareKatona } from './katona/katona.js';
 import { createProbe, existingProbes } from './probes/probe.js';
 import { instructions as INSTRUCTIONS } from "./instructions/instructions.js";
 import { SingleClickMouse } from "./katona/presenter/logic/movement.js";
+import { ResizeWorkAround } from "./katona/general.js";
 
 
 const { PsychoJS } = core;
@@ -397,12 +398,14 @@ let singleClick;
 let mainResetButton;
 let katonaRules;
 let probe;
-let probeKeyboard;
+let probeInput;
 let movesObserver;
 let trainingProbe;
 let trainingProbeInput;
 let instructionExitKeyboard;
 let instructionTextStim;
+
+let resizeWorkAround;
 
 async function experimentInit() {
     // Create some handy timers
@@ -476,10 +479,15 @@ async function experimentInit() {
             startTime: 0.1,
         });
 
-        probeKeyboard = new SingleSymbolKeyboard({
-            psychoJS: psychoJS,
-            additionalTrialData: new AdditionalTrialData({})
-        });
+        probeInput = PROBE_TYPE !== "ControlProbe" ?
+            new SingleSymbolKeyboard({
+                psychoJS: psychoJS,
+                additionalTrialData: new AdditionalTrialData({})
+            }) :
+            new SingleClickMouse({
+                window: psychoJS.window,
+                buttonToCheck: 'left'
+            });
 
         trainingProbe = createProbe({
             probeType: PROBE_TYPE,
@@ -507,6 +515,9 @@ async function experimentInit() {
         text: "",
         wrapWidth: psychoJS.window.size[0] / psychoJS.window.size[1] * 0.8
     });
+    instructionTextStim.adjustWrapWidthOnResize = function() {
+        this.wrapWidth = psychoJS.window.size[0] / psychoJS.window.size[1] * 0.8;
+    }
 
     instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
     instructionExitKeyboard = new SingleSymbolKeyboard({
@@ -518,6 +529,8 @@ async function experimentInit() {
         minimalThresholdTime: MINIMAL_THRESHOLD_TIME
     });
     dataSaver = new DataSaver({ psychoJS });
+
+    resizeWorkAround = new ResizeWorkAround();
 
     return Scheduler.Event.NEXT;
 }
@@ -717,6 +730,15 @@ function mainRoutineBegin(firstStart) {
         } else {
             mainClock.reset(-lastImpasseTime);
         }
+
+        resizeWorkAround.addHandler(() => {
+            const isStarted = [instructionTextStim, fiveSquaresGrid]
+                .some((element) => element.status === PsychoJS.Status.STARTED)
+            if (!isStarted) return;
+
+            instructionTextStim.adjustWrapWidthOnResize();
+            fiveSquaresGrid.setAutoDraw(true);
+        });
         // test.setAutoDraw(true);
         // test.forEach((tt) => tt.setAutoDraw(true));
         // screenCoverAfterWrongSolution.setAutoDraw(true);
@@ -735,7 +757,6 @@ function mainRoutineEachFrame() {
         t = mainClock.getTime();
         frameN = frameN + 1;// number of completed frames (so 0 is the first frame)
         // update/draw components on each frame
-
         if (fiveSquaresGrid.status === PsychoJS.Status.NOT_STARTED && t >=
             TIME_BEFORE_START) {
             fiveSquaresGrid.setAutoDraw(true);
@@ -792,6 +813,7 @@ function mainRoutineEachFrame() {
 
 function mainRoutineEnd() {
     return async function() {
+        resizeWorkAround.removeLastHandler();
         // the Routine "main" was not non-slip safe, so reset the non-slip timer
         fiveSquaresGrid.status = PsychoJS.Status.NOT_STARTED;
         mainResetButton.status = PsychoJS.Status.NOT_STARTED;
@@ -824,8 +846,10 @@ function probesTraining(probeInstruction, nTrial) {
             trainingProbesClock.reset();
 
             instructionTextStim.text = INSTRUCTIONS[`${PROBE_TYPE}Short`];
-            instructionTextStim.pos = PROBE_TYPE !== "ControlProbe" ? [0, 0.2] : [0, 0.46];
+            instructionTextStim.pos = PROBE_TYPE !== "ControlProbe" ? [0, 0.2] : [0, 0.38];
             instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
+
+
         }
 
         t = trainingProbesClock.getTime();
@@ -1020,15 +1044,16 @@ function probesDuringImpasse() {
         }
 
         if (instructionTextStim.status === PsychoJS.Status.NOT_STARTED) {
+            resizeWorkAround.addHandler(() => instructionTextStim.adjustWrapWidthOnResize());
             instructionTextStim.setAutoDraw(true);
         }
 
-        if (!probeKeyboard.isInitialized && probe.isStarted) {
-            probeKeyboard.initialize({ keysToWatch: ['left', 'right'] });
+        if (!probeInput.isInitialized && probe.isStarted) {
+            probeInput.initialize({ keysToWatch: ['left', 'right'] });
         }
 
-        if (probeKeyboard.isSendInput()) {
-            const pressInfo = probeKeyboard.getData();
+        if (probeInput.isSendInput() && allProbeTraingConditionsMet(trainingProbe)) {
+            const pressInfo = probeInput.getData();
             eventHandler.emitEvent(EVENT.PROBE_ANSWER, {
                 probeType: PROBE_TYPE,
                 probeName: probe.getProbeName(),
@@ -1037,14 +1062,16 @@ function probesDuringImpasse() {
                 isCorrect: probe.getPressCorrectness(pressInfo.keyName) ? 1 : 0,
                 timeFromStart: globalClock.getTime(),
             });
-            probeKeyboard.stop();
+            probeInput.stop();
             probe.stop();
             // go to next probe if impasse intervention is not finished
             flowScheduler.add(probesDuringImpasse());
+            resizeWorkAround.removeLastHandler();
             return Scheduler.Event.NEXT;
         }
 
         if (routineTimer.getTime() < 0) {
+            resizeWorkAround.removeLastHandler();
             prepareReturnToMainRoutine();
             return Scheduler.Event.NEXT;
         }
@@ -1087,6 +1114,7 @@ function showSingleInstruction(instructionName, instructions) {
         t = instructionClock.getTime();
 
         if (instructionTextStim.status !== PsychoJS.Status.STARTED) {
+            resizeWorkAround.addHandler(() => instructionTextStim.adjustWrapWidthOnResize());
             instructionTextStim.status = PsychoJS.Status.STARTED;
             instructionTextStim.text = instructions[instructionName];
             instructionTextStim.setAutoDraw(true);
@@ -1108,6 +1136,7 @@ function showSingleInstruction(instructionName, instructions) {
             instructionTextStim.setAutoDraw(false);
             instructionTextStim.status = PsychoJS.Status.FINISHED;
 
+            resizeWorkAround.removeLastHandler();
             return Scheduler.Event.NEXT;
         }
 

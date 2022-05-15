@@ -79,42 +79,41 @@ export function sd(x, xMean) {
 }
 
 export class ResizeWorkAround {
-    constructor() {
-        this._handler = null;
+    constructor(window) {
+        this._handlerID = null;
+        this._window = window;
+        this._previousSize = Array.from(window.size);
+    }
+
+    _isStable() {
+        return this._window.size[0] === this._previousSize[0] && this._window.size[1] === this._previousSize[1];
     }
 
     _handleWhenStabialized(f, ms) {
         let startHandlerId = null;
         return () => {
+            if (this._isStable()) return;
+            this._previousSize = Array.from(this._window.size);
             clearTimeout(startHandlerId);
             startHandlerId = setTimeout(f, ms);
         };
     }
 
     addHandler(handler) {
-        if (this._handler !== null) {
+        if (this._handlerID !== null) {
             throw new Error(
-                `There is must be only one handler registered! But has already this handler ${this._handler}`
+                `There is must be only one handler registered! But has already this handler ${this._handlerID}`
             );
         }
 
-        this._handler = this._handleWhenStabialized(handler, 500);
-
-        window.addEventListener(
-            "resize",
-            this._handler,
-        );
+        this._handlerID = setInterval(this._handleWhenStabialized(handler, 20), 200);
     }
 
     removeLastHandler() {
-        if (this._handler === null) {
+        if (this._handlerID === null) {
             throw new Error('There is no handler to remove');
         }
-
-        window.removeEventListener(
-            "resize",
-            this._handler,
-        );
-        this._handler = null;
+        clearInterval(this._handlerID);
+        this._handlerID = null;
     }
 }

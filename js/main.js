@@ -1049,6 +1049,7 @@ function probesDuringImpasse() {
         }
 
         if (instructionTextStim.status === PsychoJS.Status.NOT_STARTED) {
+            instructionTextStim.pos = [0, 0.4];
             resizeWorkAround.addHandler(() => instructionTextStim.adjustWrapWidthOnResize());
             instructionTextStim.setAutoDraw(true);
         }

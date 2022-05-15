@@ -1040,7 +1040,6 @@ function probesDuringImpasse() {
     let t = 0;
     probe.nextProbe();
     impasseProbesClock.reset();
-    console.log("PREPARED", probe, probe._probeView);
     return async () => {
         t = impasseProbesClock.getTime();
 

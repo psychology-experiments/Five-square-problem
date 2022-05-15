@@ -27,15 +27,15 @@ const { EVENT } = eventHandler;
 const PROBE_CAN_BE_CHOSEN = true;
 const DOWNLOAD_RESOURCES = true;
 const SHOW_IMPASSE_PROBES = DOWNLOAD_RESOURCES && true;
-const SHOW_SINGLE_INSTRUCTION = true;
-const GRID_TRAINING = true;
-const PROBE_TRAINING = true;
+const SHOW_SINGLE_INSTRUCTION = false;
+const GRID_TRAINING = false;
+const PROBE_TRAINING = false;
 // Experiment constants
 const PROBE_TYPES = Object.keys(existingProbes);
 let PROBE_TYPE;
 // TODO: определить длительность прерывания
 const IMPASSE_INTERRUPTION_TIME = 15;
-const MINIMAL_THRESHOLD_TIME = 15;
+const MINIMAL_THRESHOLD_TIME = 1;
 // TODO: make random or arbitrary choice of probes at experiment start
 const MINIMAL_PROBE_TRAINING_TRAILS = 30;
 
@@ -517,7 +517,7 @@ async function experimentInit() {
     });
     instructionTextStim.adjustWrapWidthOnResize = function() {
         this.wrapWidth = psychoJS.window.size[0] / psychoJS.window.size[1] * 0.8;
-    }
+    };
 
     instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
     instructionExitKeyboard = new SingleSymbolKeyboard({
@@ -733,7 +733,7 @@ function mainRoutineBegin(firstStart) {
 
         resizeWorkAround.addHandler(() => {
             const isStarted = [instructionTextStim, fiveSquaresGrid]
-                .some((element) => element.status === PsychoJS.Status.STARTED)
+                .some((element) => element.status === PsychoJS.Status.STARTED);
             if (!isStarted) return;
 
             instructionTextStim.adjustWrapWidthOnResize();
@@ -834,6 +834,10 @@ function mainRoutineEnd() {
 
 function allProbeTraingConditionsMet(trainingProbe) {
     return PROBE_TYPE !== "ControlProbe" || trainingProbeInput.isPressedIn(trainingProbe);
+}
+
+function allImpasseProbeConditionsMet(probe) {
+    return PROBE_TYPE !== "ControlProbe" || probeInput.isPressedIn(probe);
 }
 
 function probesTraining(probeInstruction, nTrial) {
@@ -1036,6 +1040,7 @@ function probesDuringImpasse() {
     let t = 0;
     probe.nextProbe();
     impasseProbesClock.reset();
+    console.log("PREPARED", probe, probe._probeView);
     return async () => {
         t = impasseProbesClock.getTime();
 
@@ -1052,7 +1057,7 @@ function probesDuringImpasse() {
             probeInput.initialize({ keysToWatch: ['left', 'right'] });
         }
 
-        if (probeInput.isSendInput() && allProbeTraingConditionsMet(trainingProbe)) {
+        if (probeInput.isSendInput() && allImpasseProbeConditionsMet(probe)) {
             const pressInfo = probeInput.getData();
             eventHandler.emitEvent(EVENT.PROBE_ANSWER, {
                 probeType: PROBE_TYPE,

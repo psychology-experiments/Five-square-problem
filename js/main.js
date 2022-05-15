@@ -27,23 +27,23 @@ const { EVENT } = eventHandler;
 const PROBE_CAN_BE_CHOSEN = true;
 const DOWNLOAD_RESOURCES = true;
 const SHOW_IMPASSE_PROBES = DOWNLOAD_RESOURCES && true;
-const SHOW_SINGLE_INSTRUCTION = false;
-const GRID_TRAINING = false;
-const PROBE_TRAINING = false;
+const SHOW_SINGLE_INSTRUCTION = true;
+const GRID_TRAINING = true;
+const PROBE_TRAINING = true;
 // Experiment constants
 const PROBE_TYPES = Object.keys(existingProbes);
 let PROBE_TYPE;
 // TODO: определить длительность прерывания
 const IMPASSE_INTERRUPTION_TIME = 15;
-const MINIMAL_THRESHOLD_TIME = 1;
+const MINIMAL_THRESHOLD_TIME = 15;
 // TODO: make random or arbitrary choice of probes at experiment start
 const MINIMAL_PROBE_TRAINING_TRAILS = 30;
+const MAX_KATONA_SOLUTION_TIME = 15 * 60;
 
 
 // store info about the experiment session:
 const expName = 'Five square problem';
 const expInfo = {
-    испытуемый: '',
     пол: ['Ж', 'М'],
     возраст: '',
 };
@@ -334,6 +334,7 @@ async function checkDeviceIsPermittedToUse() {
 function prepareReturnToMainRoutine() {
     probe.setAutoDraw(false, t);
     instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
+    flowScheduler.add(showWarningMessage(INSTRUCTIONS.katonaWarning.toString()));
     flowScheduler.add(mainRoutineBegin(false));
     flowScheduler.add(mainRoutineEachFrame());
     flowScheduler.add(mainRoutineEnd());
@@ -345,6 +346,7 @@ function prepareImpasseRoutine() {
     instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
     instructionTextStim.text = INSTRUCTIONS[`${PROBE_TYPE}Short`];
     instructionTextStim.pos = [0, 0.2];
+    flowScheduler.add(showWarningMessage(INSTRUCTIONS.impasseWarning.toString()));
     flowScheduler.add(probesDuringImpasse());
     routineTimer.reset(IMPASSE_INTERRUPTION_TIME);
 }
@@ -404,6 +406,7 @@ let trainingProbe;
 let trainingProbeInput;
 let instructionExitKeyboard;
 let instructionTextStim;
+let warningMessage;
 
 let resizeWorkAround;
 
@@ -525,12 +528,25 @@ async function experimentInit() {
         additionalTrialData: new AdditionalTrialData({})
     });
 
+    warningMessage = new visual.TextStim({
+        win: psychoJS.window,
+        color: new util.Color("black"),
+        height: 0.035,
+        text: "",
+        wrapWidth: psychoJS.window.size[0] / psychoJS.window.size[1] * 0.8
+    });
+    warningMessage.adjustWrapWidthOnResize = function() {
+        this.wrapWidth = psychoJS.window.size[0] / psychoJS.window.size[1] * 0.8;
+    };
+
+    warningMessage.status = PsychoJS.Status.NOT_STARTED;
+
     movesObserver = new MovesTimeObserver({
         minimalThresholdTime: MINIMAL_THRESHOLD_TIME
     });
     dataSaver = new DataSaver({ psychoJS });
 
-    resizeWorkAround = new ResizeWorkAround();
+    resizeWorkAround = new ResizeWorkAround(psychoJS.window);
 
     return Scheduler.Event.NEXT;
 }
@@ -737,6 +753,7 @@ function mainRoutineBegin(firstStart) {
             if (!isStarted) return;
 
             instructionTextStim.adjustWrapWidthOnResize();
+            fiveSquaresGrid.setAutoDraw(false);
             fiveSquaresGrid.setAutoDraw(true);
         });
         // test.setAutoDraw(true);
@@ -794,8 +811,9 @@ function mainRoutineEachFrame() {
                 false);
         }
 
-        if (katonaRules.isSolved()) {
+        if (katonaRules.isSolved() || t > MAX_KATONA_SOLUTION_TIME) {
             flowScheduler.add(quitPsychoJS, '', true);
+            dataSaver.saveData({event: "SOLUTION", eventData: {isSolved: katonaRules.isSolved()}});
             return Scheduler.Event.NEXT;
         }
 
@@ -853,7 +871,10 @@ function probesTraining(probeInstruction, nTrial) {
             instructionTextStim.pos = PROBE_TYPE !== "ControlProbe" ? [0, 0.2] : [0, 0.38];
             instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
 
-
+            resizeWorkAround.addHandler(() => {
+                trainingProbe.adjustOnResize();
+                instructionTextStim.adjustWrapWidthOnResize();
+            });
         }
 
         t = trainingProbesClock.getTime();
@@ -886,6 +907,7 @@ function probesTraining(probeInstruction, nTrial) {
             trainingProbe.nextProbe();
             // go to next probe if training is not finished
             probeTrainingScheduler.add(probesTraining(INSTRUCTIONS[`${PROBE_TYPE}Short`], nTrial + 1));
+            resizeWorkAround.removeLastHandler();
             return Scheduler.Event.NEXT;
         }
 
@@ -894,6 +916,7 @@ function probesTraining(probeInstruction, nTrial) {
             instructionTextStim.pos = [0, 0];
             instructionTextStim.status = PsychoJS.Status.FINISHED;
             instructionTextStim.setAutoDraw(false);
+            resizeWorkAround.removeLastHandler();
             return Scheduler.Event.NEXT;
         }
 
@@ -996,6 +1019,7 @@ function trainingOnGrid(
         }
 
         if (instructionTextStim.status === PsychoJS.Status.NOT_STARTED) {
+            resizeWorkAround.addHandler(() => instructionTextStim.adjustWrapWidthOnResize());
             instructionTextStim.status = PsychoJS.Status.STARTED;
             instructionTextStim.setAutoDraw(true);
         }
@@ -1029,6 +1053,7 @@ function trainingOnGrid(
             trainingGrid.setAutoDraw(false);
             trainingResetButton.setAutoDraw(false);
             singleClick.stop();
+            resizeWorkAround.removeLastHandler();
             return Scheduler.Event.NEXT;
         }
 
@@ -1080,6 +1105,7 @@ function probesDuringImpasse() {
 
         if (routineTimer.getTime() < 0) {
             resizeWorkAround.removeLastHandler();
+            instructionTextStim.setAutoDraw(false);
             prepareReturnToMainRoutine();
             return Scheduler.Event.NEXT;
         }
@@ -1144,6 +1170,40 @@ function showSingleInstruction(instructionName, instructions) {
             instructionTextStim.setAutoDraw(false);
             instructionTextStim.status = PsychoJS.Status.FINISHED;
 
+            resizeWorkAround.removeLastHandler();
+            return Scheduler.Event.NEXT;
+        }
+
+        return Scheduler.Event.FLIP_REPEAT;
+    };
+}
+
+function showWarningMessage(warningText) {
+    let isPreparationComplete = false;
+    let countdown = 3;
+    let countdownID;
+    return async () => {
+        if (!isPreparationComplete) {
+            isPreparationComplete = true;
+            warningMessage.status = PsychoJS.Status.NOT_STARTED;
+            countdownID = setInterval(() => {
+                countdown -= 1;
+                warningMessage.text = `${warningText} ${countdown}`;
+            }, 1000);
+        }
+
+        if (warningMessage.status !== PsychoJS.Status.STARTED) {
+            resizeWorkAround.addHandler(() => warningMessage.adjustWrapWidthOnResize());
+            warningMessage.status = PsychoJS.Status.STARTED;
+            warningMessage.text = `${warningText} ${countdown}`;
+            warningMessage.setAutoDraw(true);
+        }
+
+
+        if (countdown === -1) {
+            clearInterval(countdownID);
+            warningMessage.setAutoDraw(false);
+            warningMessage.status = PsychoJS.Status.FINISHED;
             resizeWorkAround.removeLastHandler();
             return Scheduler.Event.NEXT;
         }

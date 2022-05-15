@@ -24,7 +24,7 @@ const { Scheduler } = util;
 const { EVENT } = eventHandler;
 
 // Development constants
-const PROBE_CAN_BE_CHOSEN = true;
+const PROBE_CAN_BE_CHOSEN = false;
 const DOWNLOAD_RESOURCES = true;
 const SHOW_IMPASSE_PROBES = DOWNLOAD_RESOURCES && true;
 const SHOW_SINGLE_INSTRUCTION = true;

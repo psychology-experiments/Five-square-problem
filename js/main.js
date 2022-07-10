@@ -671,7 +671,7 @@ async function eventHandlersInit() {
         event: EVENT.CHOSEN,
         handler: (data) => {
             if (data.isTraining) return;
-            movesObserver.addStartTime(data.takenRT);
+            movesObserver.addStartTime(data.takeRT);
         }
     });
 
@@ -679,7 +679,7 @@ async function eventHandlersInit() {
         event: EVENT.PLACED,
         handler: (data) => {
             if (data.isTraining) return;
-            movesObserver.addEndTime(data.placedRT);
+            movesObserver.addEndTime(data.placeRT);
         }
     });
 

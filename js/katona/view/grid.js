@@ -128,8 +128,6 @@ class GridElement extends visual.Rect {
     }
 
     returnToDefault() {
-        if (this._occupiedByDefalut === this._occupiedBy) return;
-
         this.placeMovableElement(this._occupiedByDefalut);
     }
 }

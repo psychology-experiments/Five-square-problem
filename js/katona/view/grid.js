@@ -194,6 +194,7 @@ class SingleMovableElement {
     returnToDefault() {
         if (this._wasPlacedOn !== this._defaultGridElement && this._currentlyPlacedOn !== null) {
             // return to default grid element that did not have movable element
+            // at start
             this._wasPlacedOn.giveMovableElement();
         }
         this._defaultGridElement.returnToDefault();

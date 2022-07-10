@@ -99,7 +99,7 @@ class GridElement extends visual.Rect {
     }
 
     giveMovableElement() {
-        if (this._occupiedBy === null) {
+        if (!this.occupied) {
             throw new Error(
                 `GridElement (${this.name}) was asked to give movable element when there is no`);
         }

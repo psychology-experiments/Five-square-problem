@@ -103,11 +103,8 @@ class MovesTimeObserver {
 
     addStartTime(RT) {
         if (this._moveAfterImpasse) {
-            // TODO: Обсудить добавлять ли после тупика время хода, если считать
-            // от момента, когда вернулись к решению, а не от предыдущего хода
             this._moveAfterImpasse = false;
         }
-
         this._movesTime.push(RT + this._lastMoveTime);
         this._lastMoveTime = null;
 
@@ -148,48 +145,49 @@ class MovesTimeObserver {
     }
 }
 
+
 class DataSaver {
     constructor({ psychoJS }) {
         this._saveEngine = psychoJS.experiment;
 
         this._eventToStageName = {
-            "CHOSEN": "Katona",
-            "PLACED": "Katona",
-            "RESET": "Katona",
-            "IMPASSE": "Katona",
-            "PROBE_ANSWER": "Probe",
-            "INSTRUCTION_READING": "Instuction",
-            "SOLUTION": "Solution"
+            'CHOSEN': 'Katona',
+            'PLACED': 'Katona',
+            'RESET': 'Katona',
+            'IMPASSE': 'Katona',
+            'PROBE_ANSWER': 'Probe',
+            'INSTRUCTION_READING': 'Instuction',
+            'SOLUTION': 'Solution'
         };
 
         // setting up order of columns
         this._saveEngine._currentTrialData = {
-            stage: "",
-            element: "",
-            takenFrom: "",
-            placedTo: "",
-            takeRT: "",
-            placeRT: "",
-            resetRT: "",
-            timeSolving: "",
-            probeType: "",
-            probeName: "",
-            probeRT: "",
-            keyPressed: "",
-            isCorrect: "",
-            isSolved: "",
-            timeFromStart: "",
-            instructionName: "",
-            instructionExitRT: "",
+            stage: '',
+            element: '',
+            takenFrom: '',
+            placedTo: '',
+            takeRT: '',
+            placeRT: '',
+            resetRT: '',
+            timeSolving: '',
+            probeType: '',
+            probeName: '',
+            probeRT: '',
+            keyPressed: '',
+            isCorrect: '',
+            isSolved: '',
+            timeFromStart: '',
+            instructionName: '',
+            instructionExitRT: '',
         };
 
     }
 
     _addRowData(event, rowData) {
         const stage = this._eventToStageName[event];
-        const trainingModifier = "isTraining" in rowData ? "Training " : "";
+        const trainingModifier = 'isTraining' in rowData ? 'Training ' : '';
         if (rowData.isTraining) delete rowData.isTraining;
-        this._saveEngine.addData("stage", trainingModifier + stage);
+        this._saveEngine.addData('stage', trainingModifier + stage);
         const columnsData = Object.entries(rowData);
         for (const [columnName, columnValue] of columnsData) {
             this._saveEngine.addData(columnName, columnValue);
@@ -208,5 +206,6 @@ class DataSaver {
         }
     }
 }
+
 
 export { DataSaver, ScreenCover, MovesTimeObserver };

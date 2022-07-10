@@ -160,7 +160,6 @@ export class AdditionalTrialData {
     }
 
     addData(trialData) {
-        // TODO: time data is added after routine is ended. Let's try to make it nearer to actual time point (generate in main for example)
         const additionalData = this._generateAdditionalData();
         this._checkNoDataOverwritten(trialData, additionalData);
 

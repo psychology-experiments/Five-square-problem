@@ -13,9 +13,9 @@ import {
 } from './inputprocessing/inputprocessing.js';
 import { FiveSquareKatona } from './katona/katona.js';
 import { createProbe, existingProbes } from './probes/probe.js';
-import { instructions as INSTRUCTIONS } from "./instructions/instructions.js";
-import { SingleClickMouse } from "./katona/presenter/logic/movement.js";
-import { ResizeWorkAround } from "./katona/general.js";
+import { instructions as INSTRUCTIONS } from './instructions/instructions.js';
+import { SingleClickMouse } from './katona/presenter/logic/movement.js';
+import { ResizeWorkAround } from './katona/general.js';
 
 
 const { PsychoJS } = core;
@@ -33,16 +33,15 @@ const PROBE_TRAINING = true;
 // Experiment constants
 const PROBE_TYPES = Object.keys(existingProbes);
 let PROBE_TYPE;
-// TODO: определить длительность прерывания
 const IMPASSE_INTERRUPTION_TIME = 15;
 const MINIMAL_THRESHOLD_TIME = 15;
-// TODO: make random or arbitrary choice of probes at experiment start
 const MINIMAL_PROBE_TRAINING_TRAILS = 30;
-const MAX_KATONA_SOLUTION_TIME = 15 * 60;
+const MAX_KATONA_SOLUTION_TIME = 15 * 60; // minutes to seconds
 
 
 // store info about the experiment session:
 const expName = 'Five square problem';
+// noinspection NonAsciiCharacters
 const expInfo = {
     пол: ['Ж', 'М'],
     возраст: '',
@@ -150,7 +149,7 @@ for (const probeName in PROBES_DATA) {
 
 // init psychoJS:
 const psychoJS = new PsychoJS({
-    debug: true // TODO: remove when development done
+    debug: false
 });
 
 // open window:
@@ -167,14 +166,15 @@ if (DOWNLOAD_RESOURCES) {
     // schedule the experiment
     psychoJS.schedule(psychoJS.gui.DlgFromDict({
         logoUrl: './materials/favicon.ico',
-        // TODO: add text attribute
+        text: 'Пожалуйста, дождитесь завершения  загрузки эксперимента' +
+            ',\nа затем нажмите Ok',
         dictionary: expInfo,
         title: 'Пять квадратов'
     }));
 
     // Cast age field to number input
     const castAgeFieldFromTextToNumber = setInterval(() => {
-        const ageField = document.querySelector("input[name='возраст']");
+        const ageField = document.querySelector('input[name=\'возраст\']');
         if (ageField === null) return;
 
         ageField.type = 'number';
@@ -210,6 +210,9 @@ if (DOWNLOAD_RESOURCES) {
 
         return (psychoJS.gui.dialogComponent.button === 'OK');
     }, flowScheduler, dialogCancelScheduler);
+
+    // quit if user presses Cancel in dialog box:
+    dialogCancelScheduler.add(quitPsychoJS, '', false);
 } else {
     // during development start experiment without dialog component if w/o probes
     psychoJS.scheduleCondition(() => true, flowScheduler, flowScheduler);
@@ -222,37 +225,37 @@ flowScheduler.add(experimentInit);
 flowScheduler.add(eventHandlersInit);
 // instructions before training with grid and elements
 scheduleConditionally(flowScheduler,
-    showSingleInstruction("start", INSTRUCTIONS),
+    showSingleInstruction('start', INSTRUCTIONS),
     SHOW_SINGLE_INSTRUCTION);
 // training with grid and elements
 scheduleConditionally(flowScheduler,
     trainingOnGrid(
         [[0, 0]],
-        ["[1,2]"],
+        ['[1,2]'],
         (grid, [target]) => {
             const movableElement = grid.movableElements[0];
             return movableElement.getElementInfo().placedOn === target;
         },
-        "firstControlsTraining",
+        'firstControlsTraining',
         INSTRUCTIONS),
     GRID_TRAINING);
 scheduleConditionally(flowScheduler,
     trainingOnGrid(
         [[0, -1], [0, 0]],
-        ["[6,2]"],
+        ['[6,2]'],
         (grid, [target]) => {
             const movableElements = grid.movableElements;
             return movableElements.some((element) => {
                 return element.getElementInfo().placedOn === target;
             });
         },
-        "secondControlsTraining",
+        'secondControlsTraining',
         INSTRUCTIONS),
     GRID_TRAINING);
 scheduleConditionally(flowScheduler,
     trainingOnGrid(
         [[-2, -1], [0, -1], [2, -1]],
-        ["[1,3]", "[3,3]", "[5,3]"],
+        ['[1,3]', '[3,3]', '[5,3]'],
         (() => {
             let isFinished = false;
             return (grid, targets) => {
@@ -264,23 +267,23 @@ scheduleConditionally(flowScheduler,
                 return isFinished;
             };
         })(),
-        "thirdControlsTraining",
+        'thirdControlsTraining',
         INSTRUCTIONS),
     GRID_TRAINING);
 // instructions before training with probe
 scheduleConditionally(flowScheduler,
-    showSingleInstruction("beforeProbeTraining", INSTRUCTIONS),
+    showSingleInstruction('beforeProbeTraining', INSTRUCTIONS),
     SHOW_SINGLE_INSTRUCTION);
 scheduleConditionally(flowScheduler,
     showSingleInstruction(`${PROBE_TYPE}Full`, INSTRUCTIONS),
     SHOW_SINGLE_INSTRUCTION);
-// probe traing
+// probe training
 const probeTrainingScheduler = scheduleConditionally(flowScheduler,
     probesTraining(INSTRUCTIONS[`${PROBE_TYPE}Short`], 0),
     PROBE_TRAINING);
 // instructions after training with probe
 scheduleConditionally(flowScheduler,
-    showSingleInstruction("afterProbeTraining", INSTRUCTIONS),
+    showSingleInstruction('afterProbeTraining', INSTRUCTIONS),
     SHOW_SINGLE_INSTRUCTION);
 // main task
 flowScheduler.add(mainRoutineBegin(true));
@@ -291,9 +294,6 @@ flowScheduler.add(mainRoutineEnd());
 //     probesDuringImpasse(),
 //     SHOW_IMPASSE_PROBES);
 
-
-// quit if user presses Cancel in dialog box: TODO: uncomment when script ready
-// dialogCancelScheduler.add(quitPsychoJS, '', false);
 
 // load resources for experiment (during or after dialog component)
 
@@ -311,15 +311,14 @@ async function checkDeviceIsPermittedToUse() {
     if (regExpRestrictedDevices.test(navigator.userAgent)) {
         const exitMessage = `К сожалению, поучаствовать в исследовании можно только с компьютера или ноутбука`;
         const messageEditorID = setInterval(() => {
-            const title = document.querySelector(".ui-dialog-title");
-            const message = document.querySelector("p.validateTips");
+            const title = document.querySelector('.ui-dialog-title');
+            const message = document.querySelector('p.validateTips');
 
             if (title !== null && message !== null) {
-                title.textContent = "Сообщение";
-                message.innerHTML = message.innerHTML
-                    .replace(
-                        "Thank you for your patience",
-                        "Спасибо за ваше терпение");
+                title.textContent = 'Сообщение';
+                message.innerHTML = message.innerHTML.replace(
+                    'Thank you for your patience',
+                    'Спасибо за ваше терпение');
                 clearInterval(messageEditorID);
             }
 
@@ -334,7 +333,8 @@ async function checkDeviceIsPermittedToUse() {
 function prepareReturnToMainRoutine() {
     probe.setAutoDraw(false, t);
     instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
-    flowScheduler.add(showWarningMessage(INSTRUCTIONS.katonaWarning.toString()));
+    flowScheduler.add(
+        showWarningMessage(INSTRUCTIONS.katonaWarning.toString()));
     flowScheduler.add(mainRoutineBegin(false));
     flowScheduler.add(mainRoutineEachFrame());
     flowScheduler.add(mainRoutineEnd());
@@ -346,20 +346,12 @@ function prepareImpasseRoutine() {
     instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
     instructionTextStim.text = INSTRUCTIONS[`${PROBE_TYPE}Short`];
     instructionTextStim.pos = [0, 0.2];
-    flowScheduler.add(showWarningMessage(INSTRUCTIONS.impasseWarning.toString()));
+    flowScheduler.add(
+        showWarningMessage(INSTRUCTIONS.impasseWarning.toString()));
     flowScheduler.add(probesDuringImpasse());
     routineTimer.reset(IMPASSE_INTERRUPTION_TIME);
 }
 
-function preparTrainingRoutine() {
-    probe.prepareForNewStart();
-    flowScheduler.add(probesDuringImpasse());
-    routineTimer.reset(IMPASSE_INTERRUPTION_TIME);
-}
-
-function skipRoutine() {
-    return Scheduler.Event.NEXT;
-}
 
 function scheduleConditionally(scheduler, routine, condition) {
     const routineScheduler = new Scheduler(psychoJS);
@@ -472,7 +464,6 @@ async function experimentInit() {
     );
 
     if (SHOW_IMPASSE_PROBES) {
-        // TODO: make random or arbitrary choice of probes at experiment start
         probe = createProbe({
             probeType: PROBE_TYPE,
             probes: PROBES_DATA[PROBE_TYPE].probes,
@@ -482,7 +473,7 @@ async function experimentInit() {
             startTime: 0.1,
         });
 
-        probeInput = PROBE_TYPE !== "ControlProbe" ?
+        probeInput = PROBE_TYPE !== 'ControlProbe' ?
             new SingleSymbolKeyboard({
                 psychoJS: psychoJS,
                 additionalTrialData: new AdditionalTrialData({})
@@ -500,7 +491,7 @@ async function experimentInit() {
             position: [0.0, -0.25],
             startTime: 0.1,
         });
-        trainingProbeInput = PROBE_TYPE !== "ControlProbe" ?
+        trainingProbeInput = PROBE_TYPE !== 'ControlProbe' ?
             new SingleSymbolKeyboard({
                 psychoJS: psychoJS,
                 additionalTrialData: new AdditionalTrialData({})
@@ -513,13 +504,14 @@ async function experimentInit() {
 
     instructionTextStim = new visual.TextStim({
         win: psychoJS.window,
-        color: new util.Color("black"),
+        color: new util.Color('black'),
         height: 0.035,
-        text: "",
+        text: '',
         wrapWidth: psychoJS.window.size[0] / psychoJS.window.size[1] * 0.8
     });
     instructionTextStim.adjustWrapWidthOnResize = function() {
-        this.wrapWidth = psychoJS.window.size[0] / psychoJS.window.size[1] * 0.8;
+        this.wrapWidth = psychoJS.window.size[0] / psychoJS.window.size[1] *
+            0.8;
     };
 
     instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
@@ -530,13 +522,14 @@ async function experimentInit() {
 
     warningMessage = new visual.TextStim({
         win: psychoJS.window,
-        color: new util.Color("black"),
+        color: new util.Color('black'),
         height: 0.035,
-        text: "",
+        text: '',
         wrapWidth: psychoJS.window.size[0] / psychoJS.window.size[1] * 0.8
     });
     warningMessage.adjustWrapWidthOnResize = function() {
-        this.wrapWidth = psychoJS.window.size[0] / psychoJS.window.size[1] * 0.8;
+        this.wrapWidth = psychoJS.window.size[0] / psychoJS.window.size[1] *
+            0.8;
     };
 
     warningMessage.status = PsychoJS.Status.NOT_STARTED;
@@ -574,7 +567,6 @@ async function eventHandlersInit() {
     const isMainResetButtonClick = () => {
         if (!mainResetButton.isClicked) return;
 
-        // TODO: обсудить как считать время хода, если человек нажал ЗАНОВО (во время зонда не решал)!
         eventHandler.emitEvent(EVENT.RESET, {
             resetRT: singleClick.getData().RT,
             timeFromStart: globalClock.getTime(),
@@ -601,13 +593,19 @@ async function eventHandlersInit() {
     const registerPlacingHandler = (chosenElement, grid, isTraining) => {
         eventHandler.registerHandler({
             event: EVENT.CLICK,
-            handler: () => gridElementPlacingHandler(chosenElement, grid, isTraining),
+            handler: () => gridElementPlacingHandler(chosenElement, grid,
+                isTraining),
             removeAfter: EVENT.PLACED,
         });
     };
 
     // main handlers (switching)
-    const gridElementChoosingHandler = (({ clicker, grid, routineClock, isTraining }) => {
+    const gridElementChoosingHandler = (({
+        clicker,
+        grid,
+        routineClock,
+        isTraining
+    }) => {
         const chosenElement = movement.chooseElement(grid, clicker);
 
         if (chosenElement === null) return;
@@ -624,7 +622,7 @@ async function eventHandlersInit() {
             timeSolving: routineClock.getTime(),
         };
         if (isTraining) {
-            reportData["isTraining"] = isTraining;
+            reportData['isTraining'] = isTraining;
         }
         eventHandler.emitEvent(
             EVENT.CHOSEN,
@@ -657,7 +655,7 @@ async function eventHandlersInit() {
             timeSolving: mainClock.getTime(),
         };
         if (isTraining) {
-            reportData["isTraining"] = isTraining;
+            reportData['isTraining'] = isTraining;
         }
         eventHandler.emitEvent(EVENT.PLACED, reportData);
     };
@@ -748,8 +746,8 @@ function mainRoutineBegin(firstStart) {
         }
 
         resizeWorkAround.addHandler(() => {
-            const isStarted = [instructionTextStim, fiveSquaresGrid]
-                .some((element) => element.status === PsychoJS.Status.STARTED);
+            const isStarted = [instructionTextStim, fiveSquaresGrid].some(
+                (element) => element.status === PsychoJS.Status.STARTED);
             if (!isStarted) return;
 
             instructionTextStim.adjustWrapWidthOnResize();
@@ -813,7 +811,10 @@ function mainRoutineEachFrame() {
 
         if (katonaRules.isSolved() || t > MAX_KATONA_SOLUTION_TIME) {
             flowScheduler.add(quitPsychoJS, '', true);
-            dataSaver.saveData({event: "SOLUTION", eventData: {isSolved: katonaRules.isSolved()}});
+            dataSaver.saveData({
+                event: 'SOLUTION',
+                eventData: { isSolved: katonaRules.isSolved() }
+            });
             return Scheduler.Event.NEXT;
         }
 
@@ -850,12 +851,13 @@ function mainRoutineEnd() {
     };
 }
 
-function allProbeTraingConditionsMet(trainingProbe) {
-    return PROBE_TYPE !== "ControlProbe" || trainingProbeInput.isPressedIn(trainingProbe);
+function allProbeTrainingConditionsMet(trainingProbe) {
+    return PROBE_TYPE !== 'ControlProbe' ||
+        trainingProbeInput.isPressedIn(trainingProbe);
 }
 
 function allImpasseProbeConditionsMet(probe) {
-    return PROBE_TYPE !== "ControlProbe" || probeInput.isPressedIn(probe);
+    return PROBE_TYPE !== 'ControlProbe' || probeInput.isPressedIn(probe);
 }
 
 function probesTraining(probeInstruction, nTrial) {
@@ -868,7 +870,9 @@ function probesTraining(probeInstruction, nTrial) {
             trainingProbesClock.reset();
 
             instructionTextStim.text = INSTRUCTIONS[`${PROBE_TYPE}Short`];
-            instructionTextStim.pos = PROBE_TYPE !== "ControlProbe" ? [0, 0.2] : [0, 0.38];
+            instructionTextStim.pos = PROBE_TYPE !== 'ControlProbe'
+                ? [0, 0.2]
+                : [0, 0.38];
             instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
 
             resizeWorkAround.addHandler(() => {
@@ -891,7 +895,8 @@ function probesTraining(probeInstruction, nTrial) {
             trainingProbeInput.initialize({ keysToWatch: ['left', 'right'] });
         }
 
-        if (trainingProbeInput.isSendInput() && allProbeTraingConditionsMet(trainingProbe)) {
+        if (trainingProbeInput.isSendInput() &&
+            allProbeTrainingConditionsMet(trainingProbe)) {
             const pressInfo = trainingProbeInput.getData();
             eventHandler.emitEvent(EVENT.PROBE_ANSWER, {
                 isTraining: true,
@@ -899,14 +904,17 @@ function probesTraining(probeInstruction, nTrial) {
                 probeName: trainingProbe.getProbeName(),
                 probeRT: pressInfo.RT,
                 keyPressed: pressInfo.keyName,
-                isCorrect: trainingProbe.getPressCorrectness(pressInfo.keyName) ? 1 : 0,
+                isCorrect: trainingProbe.getPressCorrectness(pressInfo.keyName)
+                    ? 1
+                    : 0,
                 timeFromStart: globalClock.getTime(),
             });
             trainingProbeInput.stop();
             trainingProbe.stop();
             trainingProbe.nextProbe();
             // go to next probe if training is not finished
-            probeTrainingScheduler.add(probesTraining(INSTRUCTIONS[`${PROBE_TYPE}Short`], nTrial + 1));
+            probeTrainingScheduler.add(
+                probesTraining(INSTRUCTIONS[`${PROBE_TYPE}Short`], nTrial + 1));
             resizeWorkAround.removeLastHandler();
             return Scheduler.Event.NEXT;
         }
@@ -936,7 +944,7 @@ function trainingOnGrid(
 
     // calculation of starting position to place grid in the center of the screen
     const startPoint = gridUnitWidth * 1.5 + gridUnitHeight * 1.5;
-    const traingGridInfo = new Grid({
+    const trainingGridInfo = new Grid({
         startPoint: [-startPoint, startPoint],
         gridSquares: 3,
         gridUnitLength: gridUnitHeight,
@@ -944,9 +952,9 @@ function trainingOnGrid(
     });
 
     const trainingGrid = new VisualGrid({
-        name: "training",
+        name: 'training',
         window: psychoJS.window,
-        grid: traingGridInfo,
+        grid: trainingGridInfo,
         gridColor: 'lightgrey',
         movableElementColor: 'black',
         movableElementsRelativeIndexes: movableElementsIndexes,
@@ -954,7 +962,7 @@ function trainingOnGrid(
     trainingGrid.status = PsychoJS.Status.NOT_STARTED;
 
     targetElementsIndexes.forEach((targetIndex) => {
-        trainingGrid.setGridElementColor(targetIndex, new util.Color("green"));
+        trainingGrid.setGridElementColor(targetIndex, new util.Color('green'));
     });
 
     const trainingGridBoundingBox = trainingGrid.getBoundingBox();
@@ -974,7 +982,7 @@ function trainingOnGrid(
     trainingResetButton.status = PsychoJS.Status.CONFIGURED;
 
     const trainingOnGridClock = new util.Clock();
-    let trainingFinished = instructionName !== "thirdControlsTraining";
+    let trainingFinished = instructionName !== 'thirdControlsTraining';
     let placedCorrectly = false;
     let firstStart = true;
     let trainingT = 0;
@@ -982,14 +990,15 @@ function trainingOnGrid(
         if (firstStart) {
             firstStart = false;
             instructionTextStim.status = PsychoJS.Status.NOT_STARTED;
-            if (instructionName === "thirdControlsTraining") {
+            if (instructionName === 'thirdControlsTraining') {
                 trainingResetButton.status = PsychoJS.Status.NOT_STARTED;
                 eventHandler.registerHandler({
                     event: EVENT.CLICK,
                     handler: () => {
                         if (
                             !trainingResetButton.isClicked
-                            || trainingResetButton.status === PsychoJS.Status.NOT_STARTED
+                            || trainingResetButton.status ===
+                            PsychoJS.Status.NOT_STARTED
                         ) return;
 
                         setTimeout(() => trainingFinished = true, 3000);
@@ -1019,12 +1028,14 @@ function trainingOnGrid(
         }
 
         if (instructionTextStim.status === PsychoJS.Status.NOT_STARTED) {
-            resizeWorkAround.addHandler(() => instructionTextStim.adjustWrapWidthOnResize());
+            resizeWorkAround.addHandler(
+                () => instructionTextStim.adjustWrapWidthOnResize());
             instructionTextStim.status = PsychoJS.Status.STARTED;
             instructionTextStim.setAutoDraw(true);
         }
 
-        if (trainingResetButton.status === PsychoJS.Status.NOT_STARTED && placedCorrectly) {
+        if (trainingResetButton.status === PsychoJS.Status.NOT_STARTED &&
+            placedCorrectly) {
             trainingResetButton.status = PsychoJS.Status.STARTED;
             trainingResetButton.setAutoDraw(true);
         }
@@ -1043,9 +1054,10 @@ function trainingOnGrid(
         }
 
 
-        placedCorrectly = isTrainingRoutineFinished(trainingGrid, targetElementsIndexes);
+        placedCorrectly = isTrainingRoutineFinished(trainingGrid,
+            targetElementsIndexes);
         if (placedCorrectly && trainingFinished) {
-            instructionTextStim.text = "";
+            instructionTextStim.text = '';
             instructionTextStim.pos = [0, 0];
 
             instructionTextStim.setAutoDraw(false);
@@ -1073,7 +1085,9 @@ function probesDuringImpasse() {
         }
 
         if (instructionTextStim.status === PsychoJS.Status.NOT_STARTED) {
-            if (PROBE_TYPE === "ControlProbe") instructionTextStim.pos = [0, 0.4];
+            if (PROBE_TYPE === 'ControlProbe') instructionTextStim.pos = [
+                0,
+                0.4];
 
             resizeWorkAround.addHandler(() => {
                 probe.adjustOnResize();
@@ -1115,32 +1129,11 @@ function probesDuringImpasse() {
 }
 
 
-// function endLoopIteration(scheduler, snapshot) { TODO: uncomment when done
-//     // ------Prepare for next entry------
-//     return async function () {
-//         if (typeof snapshot !== 'undefined') {
-//             // ------Check if user ended loop early------
-//             if (snapshot.finished) {
-//                 // Check for and save orphaned data
-//                 if (psychoJS.experiment.isEntryEmpty()) {
-//                     psychoJS.experiment.nextEntry(snapshot);
-//                 }
-//                 scheduler.stop();
-//             } else {
-//                 const thisTrial = snapshot.getCurrentTrial();
-//                 if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {
-//                     psychoJS.experiment.nextEntry(snapshot);
-//                 }
-//             }
-//             return Scheduler.Event.NEXT;
-//         }
-//     };
-// }
-
 function showSingleInstruction(instructionName, instructions) {
     let isProbeManuallyChosen = PROBE_CAN_BE_CHOSEN;
     return async () => {
-        if (isProbeManuallyChosen && (instructionName.includes("Full") || instructionName.includes("Short"))) {
+        if (isProbeManuallyChosen && (instructionName.includes('Full') ||
+            instructionName.includes('Short'))) {
             instructionName = `${PROBE_TYPE}Full`;
             isProbeManuallyChosen = false;
         }
@@ -1148,13 +1141,15 @@ function showSingleInstruction(instructionName, instructions) {
         t = instructionClock.getTime();
 
         if (instructionTextStim.status !== PsychoJS.Status.STARTED) {
-            resizeWorkAround.addHandler(() => instructionTextStim.adjustWrapWidthOnResize());
+            resizeWorkAround.addHandler(
+                () => instructionTextStim.adjustWrapWidthOnResize());
             instructionTextStim.status = PsychoJS.Status.STARTED;
             instructionTextStim.text = instructions[instructionName];
             instructionTextStim.setAutoDraw(true);
         }
 
-        if (!instructionExitKeyboard.isInitialized && instructionTextStim.status === PsychoJS.Status.STARTED) {
+        if (!instructionExitKeyboard.isInitialized &&
+            instructionTextStim.status === PsychoJS.Status.STARTED) {
             instructionExitKeyboard.initialize({ keysToWatch: ['space'] });
         }
 
@@ -1193,7 +1188,8 @@ function showWarningMessage(warningText) {
         }
 
         if (warningMessage.status !== PsychoJS.Status.STARTED) {
-            resizeWorkAround.addHandler(() => warningMessage.adjustWrapWidthOnResize());
+            resizeWorkAround.addHandler(
+                () => warningMessage.adjustWrapWidthOnResize());
             warningMessage.status = PsychoJS.Status.STARTED;
             warningMessage.text = `${warningText} ${countdown}`;
             warningMessage.setAutoDraw(true);

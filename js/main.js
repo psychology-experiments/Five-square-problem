@@ -1196,7 +1196,7 @@ function showWarningMessage(warningText) {
         }
 
 
-        if (countdown === -1) {
+        if (countdown <= -1) {
             clearInterval(countdownID);
             warningMessage.setAutoDraw(false);
             warningMessage.status = PsychoJS.Status.FINISHED;

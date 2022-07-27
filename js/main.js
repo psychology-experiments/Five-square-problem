@@ -824,7 +824,10 @@ function mainRoutineEachFrame() {
 
         if (SHOW_IMPASSE_PROBES && movesObserver.isImpasse()) {
             lastImpasseTime = t;
-            eventHandler.emitEvent(EVENT.IMPASSE, {});
+            eventHandler.emitEvent(EVENT.IMPASSE, {
+                timeFromStart: globalClock.getTime(),
+                timeSolving: mainClock.getTime(),
+            });
             return Scheduler.Event.NEXT;
         }
 
@@ -1124,13 +1127,13 @@ function probesDuringImpasse(performedProbe = false) {
         if (routineTimer.getTime() < 0) {
             if (!performedProbe) {
                 eventHandler.emitEvent(EVENT.PROBE_ANSWER, {
-                probeType: PROBE_TYPE,
-                probeName: probe.getProbeName(),
-                probeRT: 'не выполнял зонд',
-                keyPressed: '',
-                isCorrect: '',
-                timeFromStart: globalClock.getTime(),
-            });
+                    probeType: PROBE_TYPE,
+                    probeName: probe.getProbeName(),
+                    probeRT: 'не выполнял зонд',
+                    keyPressed: '',
+                    isCorrect: '',
+                    timeFromStart: globalClock.getTime(),
+                });
             }
 
             resizeWorkAround.removeLastHandler();

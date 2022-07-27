@@ -30,6 +30,7 @@ const SHOW_IMPASSE_PROBES = DOWNLOAD_RESOURCES && true;
 const SHOW_SINGLE_INSTRUCTION = true;
 const GRID_TRAINING = true;
 const PROBE_TRAINING = true;
+const IN_DEVELOPMENT = false;
 // Experiment constants
 const PROBE_TYPES = Object.keys(existingProbes);
 let PROBE_TYPE;
@@ -803,8 +804,11 @@ function mainRoutineEachFrame() {
 
 
         // check for quit (typically the Esc key)
-        if (psychoJS.experiment.experimentEnded ||
-            psychoJS.eventManager.getKeys({ keyList: ['escape'] }).length > 0) {
+        if (IN_DEVELOPMENT && (
+            psychoJS.experiment.experimentEnded ||
+            psychoJS.eventManager.getKeys({
+                keyList: ['escape']
+            }).length > 0)) {
             return quitPsychoJS('The [Escape] key was pressed. Goodbye!',
                 false);
         }

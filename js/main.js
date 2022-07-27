@@ -1077,7 +1077,7 @@ function trainingOnGrid(
     };
 }
 
-function probesDuringImpasse() {
+function probesDuringImpasse(performedProbe = false) {
     let t = 0;
     probe.nextProbe();
     impasseProbesClock.reset();
@@ -1117,11 +1117,22 @@ function probesDuringImpasse() {
             probeInput.stop();
             probe.stop();
             // go to next probe if impasse intervention is not finished
-            flowScheduler.add(probesDuringImpasse());
+            flowScheduler.add(probesDuringImpasse(true));
             return Scheduler.Event.NEXT;
         }
 
         if (routineTimer.getTime() < 0) {
+            if (!performedProbe) {
+                eventHandler.emitEvent(EVENT.PROBE_ANSWER, {
+                probeType: PROBE_TYPE,
+                probeName: probe.getProbeName(),
+                probeRT: 'не выполнял зонд',
+                keyPressed: '',
+                isCorrect: '',
+                timeFromStart: globalClock.getTime(),
+            });
+            }
+
             resizeWorkAround.removeLastHandler();
             instructionTextStim.setAutoDraw(false);
             prepareReturnToMainRoutine();

@@ -1,8 +1,9 @@
-import { core, util, visual } from '../../lib/psychojs-2021.2.3.developer.js';
+import { util, visual } from '../../lib/psychojs-2021.2.3.developer.js';
 
 import * as general from './general.js';
 
 
+// noinspection JSUnusedGlobalSymbols
 class ScreenCover {
     constructor({
         window,

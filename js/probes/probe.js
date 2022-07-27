@@ -287,7 +287,7 @@ class ControlProbe extends BaseProbe {
     }
 
     nextProbe() {
-        // multiply by 0.6 to enshure that probe is inside screen
+        // multiply by 0.6 to ensure that probe is inside screen
         const moveFromWindowBorder = 0.6;
         const x = (Math.random() * this._windowWidth - this._shiftX) * moveFromWindowBorder;
         const y = (Math.random() * this._windowHeight - this._shiftY) * moveFromWindowBorder;

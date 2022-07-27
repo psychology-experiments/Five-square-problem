@@ -156,7 +156,7 @@ class DataSaver {
             'RESET': 'Katona',
             'IMPASSE': 'Katona',
             'PROBE_ANSWER': 'Probe',
-            'INSTRUCTION_READING': 'Instuction',
+            'INSTRUCTION_READING': 'Instruction',
             'SOLUTION': 'Solution'
         };
 

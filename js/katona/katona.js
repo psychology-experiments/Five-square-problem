@@ -47,11 +47,11 @@ export class FiveSquareKatona {
         const indexMapper = _relativeIndexToAbsoluteFormatter(indexMapperFunction);
         const solutionInAbsoluteIndex = _convertSolutionRelativeIndexToAbsolute(
             indexMapper, FIVE_SQUARE_KATONA_SOLUTIONS);
-        const movableElementsAbsouluteIndexes = movableElementsRelativeIndexes.map(indexMapper);
+        const movableElementsAbsoluteIndexes = movableElementsRelativeIndexes.map(indexMapper);
         this._answerChecker = new AnswerChecker(
             solutionInAbsoluteIndex,
             3,
-            movableElementsAbsouluteIndexes,
+            movableElementsAbsoluteIndexes,
         );
     }
 

@@ -89,7 +89,7 @@ export class ResizeWorkAround {
         return this._window.size[0] === this._previousSize[0] && this._window.size[1] === this._previousSize[1];
     }
 
-    _handleWhenStabialized(f, ms) {
+    _handleWhenStabilized(f, ms) {
         let startHandlerId = null;
         return () => {
             if (this._isStable()) return;
@@ -106,7 +106,7 @@ export class ResizeWorkAround {
             );
         }
 
-        this._handlerID = setInterval(this._handleWhenStabialized(handler, 20), 200);
+        this._handlerID = setInterval(this._handleWhenStabilized(handler, 20), 200);
     }
 
     removeLastHandler() {

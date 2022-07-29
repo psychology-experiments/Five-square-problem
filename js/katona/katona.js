@@ -32,7 +32,8 @@ function _convertSolutionRelativeIndexToAbsolute(mapper, solutions) {
         absoluteIndexSolutions[solutionName] = convertedSolutions;
 
         for (const [solutionPart, solutionRelativeIndexes] of solutionNameInfo) {
-            convertedSolutions[solutionPart] = solutionRelativeIndexes.map(mapper);
+            convertedSolutions[solutionPart] = solutionRelativeIndexes.map(
+                mapper);
         }
     }
 
@@ -44,10 +45,12 @@ export class FiveSquareKatona {
     constructor({ indexMapperFunction, movableElementsRelativeIndexes }) {
         this._movesMade = 0;
 
-        const indexMapper = _relativeIndexToAbsoluteFormatter(indexMapperFunction);
+        const indexMapper = _relativeIndexToAbsoluteFormatter(
+            indexMapperFunction);
         const solutionInAbsoluteIndex = _convertSolutionRelativeIndexToAbsolute(
             indexMapper, FIVE_SQUARE_KATONA_SOLUTIONS);
-        const movableElementsAbsoluteIndexes = movableElementsRelativeIndexes.map(indexMapper);
+        const movableElementsAbsoluteIndexes = movableElementsRelativeIndexes.map(
+            indexMapper);
         this._answerChecker = new AnswerChecker(
             solutionInAbsoluteIndex,
             3,
@@ -106,14 +109,17 @@ class AnswerChecker {
     }
 
     _isCorrectSolution(solutionInfo) {
-        const takenCorrectly = solutionInfo.elements.every((taken) => this._taken.has(taken));
-        const placedCorrectly = solutionInfo.positions.every((placed) => this._placed.has(placed));
+        const takenCorrectly = solutionInfo.elements.every(
+            (taken) => this._taken.has(taken));
+        const placedCorrectly = solutionInfo.positions.every(
+            (placed) => this._placed.has(placed));
 
         return takenCorrectly && placedCorrectly;
     }
 
     _isSolutionImpossible() {
-        return this._taken.size !== this._movesToSolve || this._placed.size !== this._movesToSolve;
+        return this._taken.size !== this._movesToSolve || this._placed.size !==
+            this._movesToSolve;
     }
 
     _isSolved() {

@@ -91,7 +91,12 @@ class AnswerChecker {
 
     addMove(takenFrom, placedTo) {
         // if element is placed then this position is not free
-        this._taken.delete(placedTo);
+        // but if and only if it was not from default to default
+        // if the second case then monitoring missing stick
+        if (!this._defaultPositions.has(takenFrom) ||
+            !this._defaultPositions.has(placedTo)) {
+            this._taken.delete(placedTo);
+        }
         // if element is taken then this position is not occupied
         this._placed.delete(takenFrom);
 

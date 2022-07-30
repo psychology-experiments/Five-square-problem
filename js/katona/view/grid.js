@@ -111,6 +111,10 @@ class GridElement extends visual.Rect {
         return movableElement;
     }
 
+    hadElementByDefault() {
+        return this._occupiedByDefalut !== null;
+    }
+
     get occupied() {
         return this._occupiedBy !== null;
     }
@@ -127,7 +131,14 @@ class GridElement extends visual.Rect {
         this._occupiedBy = movableElement;
     }
 
-    returnToDefault() {
+    returnToEmptyDefault() {
+        const movableElement = this._occupiedBy;
+        movableElement.wasTakenFrom = null;
+        movableElement._currentlyPlacedOn = null;
+        this._occupiedBy = null;
+    }
+
+    returnToOccupiedDefault() {
         this.placeMovableElement(this._occupiedByDefalut);
     }
 }
@@ -188,16 +199,17 @@ class SingleMovableElement {
             name: this.name,
             takenFrom: this.wasTakenFrom,
             placedOn: this._wasPlacedOn.name,
-        }
+        };
     }
 
     returnToDefault() {
-        if (this._wasPlacedOn !== this._defaultGridElement && this._currentlyPlacedOn !== null) {
-            // return to default grid element that did not have movable element
-            // at start
-            this._wasPlacedOn.giveMovableElement();
+        // return to default grid element that did not have movable element
+        // at the start
+        if (!this._wasPlacedOn.hadElementByDefault()) {
+            this._wasPlacedOn.returnToEmptyDefault();
         }
-        this._defaultGridElement.returnToDefault();
+
+        this._defaultGridElement.returnToOccupiedDefault();
     }
 
     setAutoDraw(toShow) {

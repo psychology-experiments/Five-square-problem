@@ -1235,5 +1235,15 @@ async function quitPsychoJS(message, isCompleted) {
     psychoJS.window.close();
     await psychoJS.quit({ message: message, isCompleted: isCompleted });
 
+    const translatePatienceMessage = setInterval(() => {
+        const messageTitle = document.querySelector('span#ui-id-3');
+        const messageField = document.querySelector('p.validateTips');
+        if (messageField === null || messageTitle === null) return;
+
+        messageTitle.textContent = 'Сообщение';
+        messageField.textContent = 'Спасибо, что дождались окончания загрузки!';
+        clearInterval(translatePatienceMessage);
+    }, 10);
+
     return Scheduler.Event.QUIT;
 }

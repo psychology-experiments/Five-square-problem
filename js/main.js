@@ -6,7 +6,7 @@ import * as movement from './katona/presenter/logic/movement.js';
 
 import { Grid } from './katona/presenter/logic/grid.js';
 import { VisualGrid } from './katona/view/grid.js';
-import { DataSaver, MovesTimeObserver } from './katona/optional.js';
+import { chooseProbe, DataSaver, MovesTimeObserver } from './katona/optional.js';
 import {
     SingleSymbolKeyboard,
     AdditionalTrialData
@@ -38,6 +38,16 @@ const IMPASSE_INTERRUPTION_TIME = 15;
 const MINIMAL_THRESHOLD_TIME = 15;
 const MINIMAL_PROBE_TRAINING_TRAILS = 30;
 const MAX_KATONA_SOLUTION_TIME = 15 * 60; // minutes to seconds
+// Participants constants
+const NEEDED_PARTICIPANTS_IN_GROUP = 20;
+const CURRENT_PARTICIPANTS_IN_GROUP = new Map(
+    [ // order must be as in existingProbes
+        ['ControlProbe', 7],
+        ['UpdateProbe', 2],
+        ['ShiftProbe', 3],
+        ['InhibitionProbe', 10],
+    ]
+);
 
 
 // store info about the experiment session:
@@ -51,7 +61,11 @@ const expInfo = {
 if (PROBE_CAN_BE_CHOSEN) {
     expInfo.probeType = PROBE_TYPES;
 } else {
-    PROBE_TYPE = PROBE_TYPES[util.randint(PROBE_TYPES.length)];
+    PROBE_TYPE = chooseProbe({
+        probes: PROBE_TYPES,
+        inGroupNeeded: NEEDED_PARTICIPANTS_IN_GROUP,
+        inGroupCurrent: Array.from(CURRENT_PARTICIPANTS_IN_GROUP.values())
+    });
 }
 
 // experiment constants

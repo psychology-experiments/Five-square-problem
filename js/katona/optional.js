@@ -3,6 +3,28 @@ import { util, visual } from '../../lib/psychojs-2021.2.3.developer.js';
 import * as general from './general.js';
 
 
+export function chooseProbe({ probes, inGroupNeeded, inGroupCurrent }) {
+    const needParticipantGroups = inGroupCurrent
+        .map((participants, i) =>
+        [i, (inGroupNeeded - participants) / inGroupNeeded])
+        .filter(([_, probability]) => probability > 0);
+
+    if (needParticipantGroups.length === 0) {
+        return probes[util.randint(probes.length)];
+    }
+    const cumulativeSum = (sum => ([i, value]) => [i, sum += value])(0);
+    const groupProbabilities = needParticipantGroups.map(cumulativeSum);
+    const choice = Math.random() * groupProbabilities.slice(-1)[0][1];
+
+    for (const [group, probability] of groupProbabilities) {
+        if (choice < probability) {
+            return probes[group];
+        }
+    }
+
+}
+
+
 // noinspection JSUnusedGlobalSymbols
 class ScreenCover {
     constructor({

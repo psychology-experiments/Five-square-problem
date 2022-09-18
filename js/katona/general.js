@@ -1,3 +1,11 @@
+/**
+ * Calculate rotation angles
+ *
+ * @function
+ * @public
+ * @param {Number} orientation - in degrees
+ * @return {Array<Array<Number>>}
+ */
 export function calculateRotationMatrix(orientation) {
     let radians = -orientation * 0.017453292519943295;
     return [
@@ -6,6 +14,15 @@ export function calculateRotationMatrix(orientation) {
     ];
 }
 
+/**
+ * Multiplications of 2d matrices
+ *
+ * @function
+ * @public
+ * @param {Array<Array<Number>>} m1 - any 2d array to cycle through
+ * @param {Array<Array<Number>>} m2 - any 2d array to cycle through
+ * @return {Array<Array<Number>>}
+ */
 export const multiplyMatrices = (m1, m2) => {
     return m1.map((row, i) => {
         return m2.map((col, j) => {
@@ -15,11 +32,13 @@ export const multiplyMatrices = (m1, m2) => {
 };
 
 /**
- * Return elements from the iterable until it is exhausted. Then repeat the sequence indefinitely.
+ * Return elements from the iterable until it is exhausted.
+ * Then repeat the sequence indefinitely.
  *
  * @function
  * @public
  * @param {Iterable<T>} iterable - any iterable to cycle through
+ * @yields {<T>} element from iterable
  */
 export function* cycle(iterable) {
     const saved = [];
@@ -78,6 +97,14 @@ export function sd(x, xMean) {
     );
 }
 
+
+/**
+ * Class to resize graphical object on the screen when window size if changed
+ *
+ * @class
+ * @public
+ * @param {psychoJS.window} window
+ */
 export class ResizeWorkAround {
     constructor(window) {
         this._handlerID = null;
@@ -86,7 +113,8 @@ export class ResizeWorkAround {
     }
 
     _isStable() {
-        return this._window.size[0] === this._previousSize[0] && this._window.size[1] === this._previousSize[1];
+        return this._window.size[0] === this._previousSize[0] &&
+            this._window.size[1] === this._previousSize[1];
     }
 
     _handleWhenStabilized(f, ms) {
@@ -106,7 +134,11 @@ export class ResizeWorkAround {
             );
         }
 
-        this._handlerID = setInterval(this._handleWhenStabilized(handler, 20), 200);
+        this._handlerID = setInterval(
+            this._handleWhenStabilized(
+                handler,
+                20),
+            200);
     }
 
     removeLastHandler() {

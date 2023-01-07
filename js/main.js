@@ -42,10 +42,10 @@ const MAX_KATONA_SOLUTION_TIME = 15 * 60; // minutes to seconds
 const NEEDED_PARTICIPANTS_IN_GROUP = 20;
 const CURRENT_PARTICIPANTS_IN_GROUP = new Map(
     [ // order must be as in existingProbes
-        ['ControlProbe', 11],
-        ['UpdateProbe', 5],
-        ['ShiftProbe', 4],
-        ['InhibitionProbe', 11],
+        ['ControlProbe', 12],
+        ['UpdateProbe', 11],
+        ['ShiftProbe', 10],
+        ['InhibitionProbe', 16],
     ]
 );
 

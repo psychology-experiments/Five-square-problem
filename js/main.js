@@ -39,13 +39,13 @@ const MINIMAL_THRESHOLD_TIME = 15;
 const MINIMAL_PROBE_TRAINING_TRAILS = 30;
 const MAX_KATONA_SOLUTION_TIME = 15 * 60; // minutes to seconds
 // Participants constants
-const NEEDED_PARTICIPANTS_IN_GROUP = 20;
+const NEEDED_PARTICIPANTS_IN_GROUP = 30;
 const CURRENT_PARTICIPANTS_IN_GROUP = new Map(
     [ // order must be as in existingProbes
-        ['ControlProbe', 11],
-        ['UpdateProbe', 11],
-        ['ShiftProbe', 7],
-        ['InhibitionProbe', 14],
+        ['ControlProbe', 12],
+        ['UpdateProbe', 13],
+        ['ShiftProbe', 9],
+        ['InhibitionProbe', 17],
     ]
 );
 
